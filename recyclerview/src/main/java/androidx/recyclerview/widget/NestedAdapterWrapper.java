@@ -18,6 +18,7 @@ package androidx.recyclerview.widget;
 
 import static androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY;
 
+import android.annotation.SuppressLint;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -29,6 +30,7 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 /**
  * Wrapper for each adapter in {@link ConcatAdapter}.
  */
+@SuppressLint("RestrictedApi")
 class NestedAdapterWrapper {
     @NonNull
     private final ViewTypeStorage.ViewTypeLookup mViewTypeLookup;

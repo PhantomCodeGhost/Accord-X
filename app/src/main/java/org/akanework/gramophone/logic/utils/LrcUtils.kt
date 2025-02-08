@@ -253,14 +253,14 @@ object LrcUtils {
     }
 
     private fun parseSpeakerLabel(lyricContent: String): SpeakerLabel {
-        val lyricLabel = lyricContent.substring(0, lyricContent.length.coerceAtMost(4))
+        val lyricLabel = lyricContent.substring(0, lyricContent.length.coerceAtMost(3))
         return when {
-            lyricLabel.startsWith("v1: ") -> SpeakerLabel.Voice1
-            lyricLabel.startsWith("v2: ") -> SpeakerLabel.Voice2
-            lyricLabel.startsWith("bg: ") -> SpeakerLabel.Background
-            lyricLabel.startsWith("F: ") -> SpeakerLabel.Female
-            lyricLabel.startsWith("M: ") -> SpeakerLabel.Male
-            lyricLabel.startsWith("D: ") -> SpeakerLabel.Duet
+            lyricLabel.startsWith("v1:") -> SpeakerLabel.Voice1
+            lyricLabel.startsWith("v2:") -> SpeakerLabel.Voice2
+            lyricLabel.startsWith("bg:") -> SpeakerLabel.Background
+            lyricLabel.startsWith("F:") -> SpeakerLabel.Female
+            lyricLabel.startsWith("M:") -> SpeakerLabel.Male
+            lyricLabel.startsWith("D:") -> SpeakerLabel.Duet
             else -> SpeakerLabel.None
         }
     }
@@ -302,9 +302,9 @@ private class UsltFrameDecoder {
             val charset = getCharsetName(encoding)
 
             val lang = ByteArray(3)
-            id3Data.readBytes(lang, 0, 3) // language
+            id3Data.readBytes(lang, 0, lang.size) // language
             val rest = ByteArray(id3Data.limit() - 4)
-            id3Data.readBytes(rest, 0, id3Data.limit() - 4)
+            id3Data.readBytes(rest, 0, rest.size)
 
             val descriptionEndIndex = indexOfEos(rest, 0, encoding)
             val textStartIndex = descriptionEndIndex + delimiterLength(encoding)
@@ -313,14 +313,13 @@ private class UsltFrameDecoder {
         }
 
         private fun getCharsetName(encodingByte: Int): Charset {
-            val name = when (encodingByte) {
-                ID3_TEXT_ENCODING_UTF_16 -> "UTF-16"
-                ID3_TEXT_ENCODING_UTF_16BE -> "UTF-16BE"
-                ID3_TEXT_ENCODING_UTF_8 -> "UTF-8"
-                ID3_TEXT_ENCODING_ISO_8859_1 -> "ISO-8859-1"
-                else -> "ISO-8859-1"
+            return when (encodingByte) {
+                ID3_TEXT_ENCODING_UTF_16 -> Charsets.UTF_16
+                ID3_TEXT_ENCODING_UTF_16BE -> Charsets.UTF_16BE
+                ID3_TEXT_ENCODING_UTF_8 -> Charsets.UTF_8
+                ID3_TEXT_ENCODING_ISO_8859_1 -> Charsets.ISO_8859_1
+                else -> Charsets.ISO_8859_1
             }
-            return Charset.forName(name)
         }
 
         private fun indexOfEos(data: ByteArray, fromIndex: Int, encoding: Int): Int {

@@ -32,6 +32,7 @@ import org.akanework.gramophone.R
 import java.io.FileNotFoundException
 import java.io.InputStream
 import kotlin.math.ceil
+import androidx.core.graphics.createBitmap
 
 class BlendView @JvmOverloads constructor(
     context: Context,
@@ -232,7 +233,7 @@ class BlendView @JvmOverloads constructor(
         val width = bitmap.width
         val height = bitmap.height
 
-        val enhancedBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val enhancedBitmap = createBitmap(width, height)
         enhancedBitmap.density = bitmap.density
 
         val enhancePaint = Paint()

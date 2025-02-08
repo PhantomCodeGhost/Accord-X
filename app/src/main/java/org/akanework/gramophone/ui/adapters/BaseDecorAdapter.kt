@@ -34,6 +34,7 @@ import org.akanework.gramophone.logic.ui.ItemHeightHelper
 import org.akanework.gramophone.logic.ui.MyRecyclerView
 import org.akanework.gramophone.logic.utils.FileOpUtils
 import kotlin.random.Random
+import androidx.core.content.edit
 
 open class BaseDecorAdapter<T : BaseAdapter<*>>(
     protected val adapter: T,
@@ -130,12 +131,12 @@ open class BaseDecorAdapter<T : BaseAdapter<*>>(
                             adapter.sort(buttonMap[menuItem.itemId]!!)
                             menuItem.isChecked = true
                             if (!isSubFragment) {
-                                prefs.edit()
-                                    .putString(
+                                prefs.edit {
+                                    putString(
                                         "S" + FileOpUtils.getAdapterType(adapter).toString(),
                                         buttonMap[menuItem.itemId].toString()
                                     )
-                                    .apply()
+                                }
                             }
                         }
                         true
@@ -146,12 +147,12 @@ open class BaseDecorAdapter<T : BaseAdapter<*>>(
                             adapter.layoutType = layoutMap[menuItem.itemId]!!
                             menuItem.isChecked = true
                             if (!isSubFragment) {
-                                prefs.edit()
-                                    .putString(
+                                prefs.edit {
+                                    putString(
                                         "L" + FileOpUtils.getAdapterType(adapter).toString(),
                                         layoutMap[menuItem.itemId].toString()
                                     )
-                                    .apply()
+                                }
                             }
                         }
                         true

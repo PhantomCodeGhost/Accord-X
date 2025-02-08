@@ -17,7 +17,6 @@
 package org.helixform.fluidrecyclerview
 
 import android.content.Context
-import java.lang.RuntimeException
 
 /**
  * A helper class to create different types of {@link VelocityTracker}

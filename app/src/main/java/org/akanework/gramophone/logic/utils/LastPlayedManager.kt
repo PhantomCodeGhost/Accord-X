@@ -37,6 +37,7 @@ import org.akanework.gramophone.BuildConfig
 import org.akanework.gramophone.logic.use
 import org.akanework.gramophone.logic.utils.exoplayer.EndedWorkaroundPlayer
 import java.nio.charset.StandardCharsets
+import androidx.core.net.toUri
 
 @OptIn(UnstableApi::class)
 class LastPlayedManager(context: Context,
@@ -328,7 +329,7 @@ private class SafeDelimitedStringDecat(delimiter: String, str: String) {
     fun readInt(): Int? = read()?.toInt()
     fun readLong(): Long? = read()?.toLong()
     fun readBool(): Boolean? = read()?.toBooleanStrict()
-    fun readUri(): Uri? = Uri.parse(readStringSafe())
+    fun readUri(): Uri? = readStringSafe()?.toUri()
 }
 
 private object PrefsListUtils {

@@ -30,6 +30,7 @@ import org.akanework.gramophone.R
 import org.akanework.gramophone.logic.allowDiskAccessInStrictMode
 import org.akanework.gramophone.logic.dpToPx
 import org.akanework.gramophone.logic.enableEdgeToEdgePaddingListener
+import androidx.core.graphics.drawable.toDrawable
 
 /**
  * BasePreferenceFragment:
@@ -60,7 +61,7 @@ abstract class BasePreferenceFragment : PreferenceFragmentCompat(),
     }
 
     override fun setDivider(divider: Drawable?) {
-        super.setDivider(ColorDrawable(Color.TRANSPARENT))
+        super.setDivider(Color.TRANSPARENT.toDrawable())
     }
 
     override fun setDividerHeight(height: Int) {

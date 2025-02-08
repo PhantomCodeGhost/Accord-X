@@ -29,6 +29,7 @@ import org.akanework.gramophone.R
 import org.akanework.gramophone.logic.hasScopedStorageWithMediaTypes
 import org.akanework.gramophone.ui.fragments.BasePreferenceFragment
 import org.akanework.gramophone.ui.fragments.BaseSettingFragment
+import androidx.core.net.toUri
 
 
 class BehaviorSettingsFragment : BaseSettingFragment(R.string.settings_category_behavior,
@@ -73,7 +74,7 @@ class BehaviorSettingsTopFragment : BasePreferenceFragment() {
                     R.string.grant_images, Toast.LENGTH_LONG
             ).show()
             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-            intent.setData(Uri.parse("package:${requireContext().packageName}"))
+            intent.setData("package:${requireContext().packageName}".toUri())
             startActivity(intent)
         }
         return super.onPreferenceTreeClick(preference)

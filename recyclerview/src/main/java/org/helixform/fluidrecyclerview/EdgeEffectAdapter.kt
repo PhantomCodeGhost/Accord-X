@@ -128,7 +128,7 @@ class EdgeEffectAdapter(context: Context) {
     fun onRelease() {
         val initialValue = currentDistance.dp()
 
-        animationStartTime = AnimationUtils.currentAnimationTimeMillis();
+        animationStartTime = AnimationUtils.currentAnimationTimeMillis()
         springBack.absorb(-initialValue / 100f, initialValue)
         mode = MODE_SPRING_BACK
         isFinished = false

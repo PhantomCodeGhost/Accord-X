@@ -10,6 +10,7 @@ import com.google.android.material.checkbox.MaterialCheckBox
 import org.akanework.gramophone.R
 import org.akanework.gramophone.logic.getStringSetStrict
 import org.akanework.gramophone.logic.ui.MyRecyclerView
+import androidx.core.content.edit
 
 class BlacklistFolderAdapter(
     private val fragment: Fragment,
@@ -39,15 +40,16 @@ class BlacklistFolderAdapter(
         holder.checkBox.isChecked = folderFilter.contains(folderArray[position])
         holder.folderLocation.text = folderArray[position]
         holder.checkBox.setOnClickListener {
-            prefs.edit()
-                .putStringSet("folderFilter",
+            prefs.edit {
+                putStringSet(
+                    "folderFilter",
                     folderFilter.also {
                         if (holder.checkBox.isChecked)
                             it.add(folderArray[position])
                         else
                             it.remove(folderArray[position])
                     })
-                .apply()
+            }
         }
         holder.itemView.setOnClickListener {
             holder.checkBox.isChecked = !holder.checkBox.isChecked

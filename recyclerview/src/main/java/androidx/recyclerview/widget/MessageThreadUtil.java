@@ -82,7 +82,7 @@ class MessageThreadUtil<T> implements ThreadUtil<T> {
         };
     }
 
-    @SuppressWarnings("deprecation") /* AsyncTask */
+    /* AsyncTask */
     @Override
     public BackgroundCallback<T> getBackgroundProxy(final BackgroundCallback<T> callback) {
         return new BackgroundCallback<T>() {

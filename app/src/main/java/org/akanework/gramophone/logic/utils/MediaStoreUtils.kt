@@ -317,7 +317,7 @@ object MediaStoreUtils {
         )
         val haveImgPerm = if (hasScopedStorageWithMediaTypes()) context.hasImagePermission() else
             prefs.getBoolean("album_covers", false)
-        val coverUri = Uri.parse("content://media/external/audio/albumart")
+        val coverUri = "content://media/external/audio/albumart".toUri()
         val folderFilter = prefs.getStringSet("folderFilter", setOf()) ?: setOf()
 
         // Initialize list and maps.

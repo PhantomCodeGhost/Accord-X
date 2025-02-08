@@ -2510,7 +2510,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView,
      */
     void stopInterceptRequestLayout(boolean performLayoutChildren) {
         if (mInterceptRequestLayoutDepth < 1) {
-            //noinspection PointlessBooleanExpression
             if (sDebugAssertionsEnabled) {
                 throw new IllegalStateException("stopInterceptRequestLayout was called more "
                         + "times than startInterceptRequestLayout."
@@ -3415,7 +3414,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView,
                             + "RecyclerView data. Any method call that might change the structure"
                             + "of the RecyclerView or the adapter contents should be postponed to"
                             + "the next frame.",
-                    new IllegalStateException("" + exceptionLabel()));
+                    new IllegalStateException(exceptionLabel()));
         }
     }
 
@@ -5179,7 +5178,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView,
     @Nullable
     public View findContainingItemView(@NonNull View view) {
         ViewParent parent = view.getParent();
-        while (parent != null && parent != this && parent instanceof View) {
+        while (parent != this && parent instanceof View) {
             view = (View) parent;
             parent = view.getParent();
         }

@@ -463,14 +463,18 @@ class GramophoneMediaSourceFactory(
             mediaItem: MediaItem,
             mediaSource: MediaSource
         ): MediaSource {
-            return (if ((mediaItem.clippingConfiguration.startPositionUs == 0L) && (mediaItem.clippingConfiguration.endPositionUs == Long.MIN_VALUE) && !mediaItem.clippingConfiguration.relativeToDefaultPosition) mediaSource else ClippingMediaSource(
-                mediaSource,
-                mediaItem.clippingConfiguration.startPositionUs,
-                mediaItem.clippingConfiguration.endPositionUs,
-                !mediaItem.clippingConfiguration.startsAtKeyFrame,
-                mediaItem.clippingConfiguration.relativeToLiveWindow,
-                mediaItem.clippingConfiguration.relativeToDefaultPosition
-            ))
+            return (
+                    if ((mediaItem.clippingConfiguration.startPositionUs == 0L) && (mediaItem.clippingConfiguration.endPositionUs == Long.MIN_VALUE) && !mediaItem.clippingConfiguration.relativeToDefaultPosition)
+                        mediaSource
+                    else
+                        ClippingMediaSource.Builder(mediaSource)
+                            .setStartPositionUs(mediaItem.clippingConfiguration.startPositionUs)
+                            .setEndPositionUs(mediaItem.clippingConfiguration.endPositionUs)
+                            .setEnableInitialDiscontinuity(!mediaItem.clippingConfiguration.startsAtKeyFrame)
+                            .setAllowDynamicClippingUpdates(mediaItem.clippingConfiguration.relativeToLiveWindow)
+                            .setRelativeToDefaultPosition(mediaItem.clippingConfiguration.relativeToDefaultPosition)
+                            .build()
+                    )
         }
 
         private fun newInstance(

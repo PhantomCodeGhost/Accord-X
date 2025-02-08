@@ -27,6 +27,7 @@ import org.akanework.gramophone.logic.findBaseWrapperFragment
 import org.akanework.gramophone.logic.getBooleanStrict
 import org.akanework.gramophone.logic.utils.MediaStoreUtils
 import org.akanework.gramophone.ui.fragments.ArtistSubFragment
+import androidx.core.content.edit
 
 /**
  * [ArtistAdapter] is an adapter for displaying artists.
@@ -109,7 +110,7 @@ class ArtistAdapter(
 
     private fun setAlbumArtist(albumArtist: Boolean) {
         isAlbumArtist = albumArtist
-        prefs.edit().putBoolean("isDisplayingAlbumArtist", isAlbumArtist).apply()
+        prefs.edit { putBoolean("isDisplayingAlbumArtist", isAlbumArtist) }
         if (recyclerView != null)
             liveData?.removeObserver(this)
         liveData = if (isAlbumArtist) albumArtists else artistList

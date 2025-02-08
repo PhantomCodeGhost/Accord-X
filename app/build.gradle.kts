@@ -20,7 +20,7 @@ android {
     namespace = "org.akanework.gramophone"
     compileSdk = 35
     buildToolsVersion = "35.0.1"
-    ndkVersion = "28.0.12916984-rc3"
+    ndkVersion = "28.0.13004108"
 
     androidResources {
         generateLocaleConfig = true
@@ -166,7 +166,7 @@ configurations.configureEach {
 }
 
 dependencies {
-    val media3Version = "1.5.1"
+    val media3Version = "1.6.0-alpha03"
     val roomVersion = "2.7.0-alpha13"
 
     ksp("androidx.room:room-compiler:$roomVersion")
@@ -188,7 +188,7 @@ dependencies {
     implementation("com.google.android.material:material:1.13.0-alpha10")
     implementation("com.google.android.flexbox:flexbox:3.0.0")
     implementation("me.zhanghai.android.fastscroll:library:1.3.0")
-    implementation("io.coil-kt.coil3:coil:3.0.4")
+    implementation("io.coil-kt.coil3:coil:3.1.0")
     implementation(files("../libs/lib-decoder-ffmpeg-release.aar"))
     implementation(projects.recyclerview)
     // --- below does not apply to release builds ---

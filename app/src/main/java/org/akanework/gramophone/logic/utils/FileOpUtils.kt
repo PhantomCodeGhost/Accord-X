@@ -8,6 +8,7 @@ import org.akanework.gramophone.ui.adapters.DateAdapter
 import org.akanework.gramophone.ui.adapters.GenreAdapter
 import org.akanework.gramophone.ui.adapters.PlaylistAdapter
 import org.akanework.gramophone.ui.adapters.SongAdapter
+import androidx.core.content.edit
 
 object FileOpUtils {
     fun getAdapterType(adapter: BaseAdapter<*>) =
@@ -65,6 +66,6 @@ object FileOpUtils {
         for (entry in hashMap.entries) {
             stringSet.add("${entry.key}:${entry.value}")
         }
-        sharedPreferences.edit().putStringSet(key, stringSet).apply()
+        sharedPreferences.edit { putStringSet(key, stringSet) }
     }
 }

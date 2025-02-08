@@ -53,8 +53,7 @@ class EndedWorkaroundPlayer(player: ExoPlayer)
 
 	override fun getPlaybackState(): Int {
 		if (isEnded) return STATE_ENDED
-		@Suppress("UsePropertyAccessSyntax")
-		return super.getPlaybackState()
+        return super.getPlaybackState()
 	}
 
 	fun setShuffleOrder(

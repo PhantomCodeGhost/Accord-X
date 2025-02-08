@@ -235,6 +235,8 @@ class FastScroller extends RecyclerView.ItemDecoration implements RecyclerView.O
                 mShowHideAnimator.setStartDelay(0);
                 mShowHideAnimator.start();
                 break;
+            case ANIMATION_STATE_FADING_IN, ANIMATION_STATE_IN:
+                break;
         }
     }
 
@@ -249,6 +251,8 @@ class FastScroller extends RecyclerView.ItemDecoration implements RecyclerView.O
                 mShowHideAnimator.setFloatValues((float) mShowHideAnimator.getAnimatedValue(), 0);
                 mShowHideAnimator.setDuration(duration);
                 mShowHideAnimator.start();
+                break;
+            case ANIMATION_STATE_FADING_OUT, ANIMATION_STATE_OUT:
                 break;
         }
     }

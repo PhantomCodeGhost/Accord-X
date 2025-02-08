@@ -24,6 +24,7 @@ import static androidx.recyclerview.widget.RecyclerView.Adapter.StateRestoration
 import static androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY;
 import static androidx.recyclerview.widget.RecyclerView.NO_POSITION;
 
+import android.annotation.SuppressLint;
 import android.util.Log;
 import android.util.Pair;
 import android.view.ViewGroup;
@@ -45,6 +46,7 @@ import java.util.List;
  * All logic for the {@link ConcatAdapter} is here so that we can clearly see a separation
  * between an adapter implementation and merging logic.
  */
+@SuppressLint("RestrictedApi")
 class ConcatAdapterController implements NestedAdapterWrapper.Callback {
     private final ConcatAdapter mConcatAdapter;
 
