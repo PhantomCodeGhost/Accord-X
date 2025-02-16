@@ -1407,15 +1407,9 @@ class FullBottomSheet @JvmOverloads constructor(
             resources, R.color.contrast_lyric_highlightColor, null
         )
 
-        private var disabledTextColor = ResourcesCompat.getColor(
-            resources, R.color.contrast_lyric_disabledColor, null
-        )
-
         private val sizeFactor = 1f
 
-        private val defaultTypeface = TypefaceCompat.create(context, null, 700, false)
-
-        private val disabledTextTypeface = TypefaceCompat.create(context, null, 500, false)
+        private val lyricTextTypeface = TypefaceCompat.create(context, null, 700, false)
 
         private val extraLineHeight = resources.getDimensionPixelSize(
             R.dimen.lyric_extra_line_height
@@ -1514,7 +1508,9 @@ class FullBottomSheet @JvmOverloads constructor(
                     holder.updateHighlight(position, payloads)
                 }
                 is LyricContentViewHolder -> {
-                    holder.create()
+                    if (!holder.created(lyric)) {
+                        holder.create(lyric)
+                    }
                 }
             }
         }
@@ -1605,7 +1601,7 @@ class FullBottomSheet @JvmOverloads constructor(
                                 contentHash = lyric.hashCode()
                             ).apply {
                                 text = lyricContent
-                                typeface = defaultTypeface
+                                typeface = lyricTextTypeface
 
                                 val textSize = if (currentLyricIsBgSpeaker) 23f else 34f
                                 setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize)
@@ -1729,7 +1725,7 @@ class FullBottomSheet @JvmOverloads constructor(
                     if (currentLyricIsAnotherSpeaker || (currentLyricIsBgSpeaker && lastLyricIsAnotherSpeaker)) gravity = Gravity.END
 
                     text = lyric.translationContent
-                    typeface = defaultTypeface
+                    typeface = lyricTextTypeface
                     setLineSpacing(0f, 1f)
                 }
             }
@@ -1822,7 +1818,7 @@ class FullBottomSheet @JvmOverloads constructor(
                             Gravity.START
 
                     text = lyric.content
-                    typeface = defaultTypeface
+                    typeface = lyricTextTypeface
                     val textSize = if (currentLyricIsBgSpeaker) 23f else 34f
                     setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize)
                     setLineSpacing(0f, 1f)
@@ -1912,7 +1908,7 @@ class FullBottomSheet @JvmOverloads constructor(
                     if (currentLyricIsAnotherSpeaker || (currentLyricIsBgSpeaker && lastLyricIsAnotherSpeaker)) gravity = Gravity.END
 
                     text = lyric.translationContent
-                    typeface = defaultTypeface
+                    typeface = lyricTextTypeface
                     setLineSpacing(0f, 1f)
                 }
             }
@@ -2110,9 +2106,17 @@ class FullBottomSheet @JvmOverloads constructor(
 
             val lyricTextView: TextView = view.findViewById(R.id.lyric_text)
 
-            fun create() {
-                // TODO: Implement this
+            fun create(
+                lyric: MediaStoreUtils.Lyric
+            ) = with(lyricTextView) {
+                text = lyric.content
+                typeface = lyricTextTypeface
+                setLineSpacing(extraLineHeight.toFloat(), 1f)
             }
+
+            fun created(
+                lyric: MediaStoreUtils.Lyric
+            ): Boolean = lyricTextView.text == lyric.content
         }
 
         // PlaceHolder for empty lyric line

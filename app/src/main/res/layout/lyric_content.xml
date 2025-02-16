@@ -6,6 +6,6 @@
     android:paddingHorizontal="32.5dp"
     android:paddingVertical="18dp"
     android:focusable="true"
-    android:textColor="@color/contrast_lyric_defaultColor"
-    android:textFontWeight="500"
-    android:textSize="23sp" />
+    android:textColor="@color/contrast_lyric_highlightColor"
+    android:textFontWeight="700"
+    android:textSize="21sp" />
