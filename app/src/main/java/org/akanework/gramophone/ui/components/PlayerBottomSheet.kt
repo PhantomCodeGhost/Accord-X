@@ -325,12 +325,12 @@ class PlayerBottomSheet private constructor(
     private fun getDistanceToBottom(view: View): Int {
         val windowMetrics =
             (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).currentWindowMetrics
-        val screenHeight = windowMetrics.bounds.height()
+        val windowHeight = windowMetrics.bounds.height()
 
         val location = IntArray(2)
-        view.getLocationOnScreen(location)
+        view.getLocationInWindow(location)
 
-        return screenHeight - (location[1] + view.height)
+        return windowHeight - (location[1] + view.height)
     }
 
     override fun onAttachedToWindow() {
