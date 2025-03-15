@@ -20,7 +20,7 @@ object LrcUtils {
     private const val TAG = "LrcUtils"
 
     @Parcelize
-    enum class SpeakerLabel(val isWalaoke: Boolean) : Parcelable {
+    enum class Label(val isWalaoke: Boolean) : Parcelable {
         Male(true), // Walaoke
         Female(true), // Walaoke
         Duet(true), // Walaoke
@@ -104,20 +104,46 @@ object LrcUtils {
     fun parseLrcString(lrcContent: String, trim: Boolean): MutableList<MediaStoreUtils.Lyric> {
         val timeMarksRegex = "\\[(\\d{2}:\\d{2})([.:]\\d+)?]".toRegex()
         val wordTimeMarksRegex = "<(\\d{2}:\\d{2})([.:]\\d+)?>".toRegex()
-        val labelRegex = "(v\\d+|bg|F|M|D):\\s?".toRegex()
+        val labelRegex = "(?![\\d<])(\\d+|v\\d+|bg|F|M|D):(\\s?|.*:\\d)".toRegex()
+        val labelRegexNumberOnly = "\\d+:\\s?".toRegex()
         val bgRegex = "\\[bg: (.*?)]".toRegex()
         val list = mutableListOf<MediaStoreUtils.Lyric>()
-        var currentLabel = SpeakerLabel.None
+        var currentLabel: Label
         var currentTimeStamp = -1L
+
+        var firstLine = true
+        var firstVoice: Int = -1
         // Add all lines found on LRC (probably will be unordered because of "compression" or translation type)
         lrcContent.lines().forEach { line ->
-            currentLabel = parseSpeakerLabel(line.replace(timeMarksRegex, ""))
+            val label = labelRegex.find(
+                line.replace(timeMarksRegex, "")
+                    .replace(wordTimeMarksRegex, "")
+                    .trim()
+            ) ?: labelRegexNumberOnly.find(
+                line.replace(timeMarksRegex, "")
+                    .replace(wordTimeMarksRegex, "")
+                    .trim()
+            )
+
+            if (firstLine || firstVoice == -1) {
+                firstLine = false
+                firstVoice = label?.let { parseSpeakerLabel(it.value).second } ?: -1
+            }
+
+            currentLabel =
+                label?.let { parseSpeakerLabel(it.value, firstVoice).first } ?: Label.None
+
             timeMarksRegex.findAll(line).let { sequence ->
                 if (sequence.count() == 0) {
                     return@let
                 }
                 val lyricLine = line.substring(sequence.last().range.last + 1)
                     .let { if (trim) it.trim() else it }
+                    .let {
+                        if ((currentLabel == Label.Voice1 || currentLabel == Label.Voice2) && !it.trim().startsWith("v")) {
+                            it.replaceFirst(labelRegexNumberOnly, "")
+                        } else it
+                    }
                     .replace(labelRegex, "")
                 sequence.forEach { match ->
                     val timeString = match.groupValues[1] + match.groupValues[2]
@@ -168,7 +194,7 @@ object LrcUtils {
                     return@let
                 }
                 result.forEach { match ->
-                    currentLabel = SpeakerLabel.Background
+                    currentLabel = Label.Background
                     val lyricLine = match.value.substring(5, match.value.length - 1)
                     if (wordTimeMarksRegex.containsMatchIn(lyricLine)) {
                         val wordMatches = wordTimeMarksRegex.findAll(lyricLine)
@@ -217,7 +243,7 @@ object LrcUtils {
         var translationItems = intArrayOf()
         list.forEach {
             // Merge lyric and translation
-            if (it.startTimestamp == previousTs && it.label != SpeakerLabel.Background) {
+            if (it.startTimestamp == previousTs && it.label != Label.Background) {
                 list[list.indexOf(it) - 1].translationContent = it.content
                 translationItems += list.indexOf(it)
             }
@@ -235,11 +261,15 @@ object LrcUtils {
             }
         }
 
+        if (trim) {
+            list.removeIf { it.content.isEmpty() }
+        }
+
         // Add absolute position to each item
         list.takeWhile { it.content.isEmpty() }.forEach { _ -> list.removeAt(0) }
         var absolutePosition = 0
         list.forEachIndexed { index, it ->
-            if (it.content.isNotEmpty() && it.label != SpeakerLabel.Background) {
+            if (it.content.isNotEmpty() && it.label != Label.Background) {
                 it.absolutePosition = absolutePosition
                 absolutePosition++
             } else {
@@ -252,16 +282,33 @@ object LrcUtils {
         return list
     }
 
-    private fun parseSpeakerLabel(lyricContent: String): SpeakerLabel {
-        val lyricLabel = lyricContent.substring(0, lyricContent.length.coerceAtMost(3))
+    private fun parseSpeakerLabel(labelContent: String, firstVoice: Int = -1): Pair<Label, Int?> {
+        val numberRegex = "\\d+".toRegex()
+        if (labelContent.contains(numberRegex)) {
+            val label = numberRegex.find(labelContent) ?: throw IllegalArgumentException()
+
+            // First line
+            if (firstVoice == -1) {
+                return Pair(Label.Voice1, label.value.toInt())
+            }
+
+            return if (label.value.toInt() > 1 && firstVoice > 1) {
+                Pair(Label.Voice1, null)
+            } else if (label.value.toInt() == 1 && firstVoice == 1) {
+                Pair(Label.Voice1, null)
+            } else if (label.value.toInt() > 2 && firstVoice == 1) {
+                Pair(Label.Voice1, null)
+            } else {
+                Pair(Label.Voice2, null)
+            }
+        }
+
         return when {
-            lyricLabel.startsWith("v1:") -> SpeakerLabel.Voice1
-            lyricLabel.startsWith("v2:") -> SpeakerLabel.Voice2
-            lyricLabel.startsWith("bg:") -> SpeakerLabel.Background
-            lyricLabel.startsWith("F:") -> SpeakerLabel.Female
-            lyricLabel.startsWith("M:") -> SpeakerLabel.Male
-            lyricLabel.startsWith("D:") -> SpeakerLabel.Duet
-            else -> SpeakerLabel.None
+            labelContent.startsWith("bg:") -> Pair(Label.Background, null)
+            labelContent.startsWith("F:") -> Pair(Label.Female, null)
+            labelContent.startsWith("M:") -> Pair(Label.Male, null)
+            labelContent.startsWith("D:") -> Pair(Label.Duet, null)
+            else -> Pair(Label.None, null)
         }
     }
 

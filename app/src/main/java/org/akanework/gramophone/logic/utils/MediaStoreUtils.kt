@@ -51,7 +51,7 @@ import org.akanework.gramophone.logic.hasScopedStorageV2
 import org.akanework.gramophone.logic.hasScopedStorageWithMediaTypes
 import org.akanework.gramophone.logic.putIfAbsentSupport
 import org.akanework.gramophone.logic.utils.DatabaseUtils.getPrivatePlaylist
-import org.akanework.gramophone.logic.utils.LrcUtils.SpeakerLabel
+import org.akanework.gramophone.logic.utils.LrcUtils.Label
 import org.akanework.gramophone.ui.LibraryViewModel
 import java.io.File
 import java.time.Instant
@@ -141,7 +141,7 @@ object MediaStoreUtils {
         var translationContent: String = "",
         var absolutePosition: Int? = null,
         val wordTimestamps: List<Triple<Int, Long, Long>> = emptyList(),
-        val label: SpeakerLabel = SpeakerLabel.None
+        val label: Label = Label.None
     ) : Parcelable
 
     class RecentlyAdded(minAddDate: Long, songList: PriorityQueue<Pair<Long, MediaItem>>) :

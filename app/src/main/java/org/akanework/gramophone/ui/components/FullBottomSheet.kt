@@ -1543,11 +1543,11 @@ class FullBottomSheet @JvmOverloads constructor(
                 super.create(position, payloads, lyric)
 
                 val hasMultiSpeaker = lyricList.any {
-                    it.label == LrcUtils.SpeakerLabel.Voice2 || it.label == LrcUtils.SpeakerLabel.Female
+                    it.label == LrcUtils.Label.Voice2 || it.label == LrcUtils.Label.Female
                 }
-                val currentLyricIsAnotherSpeaker = lyric.label == LrcUtils.SpeakerLabel.Voice2 || lyric.label == LrcUtils.SpeakerLabel.Female
-                val lastLyricIsAnotherSpeaker = lyricList.getOrNull(position - 1)?.label == LrcUtils.SpeakerLabel.Voice2 || lyricList.getOrNull(position - 1)?.label == LrcUtils.SpeakerLabel.Female
-                val currentLyricIsBgSpeaker = lyric.label == LrcUtils.SpeakerLabel.Background
+                val currentLyricIsAnotherSpeaker = lyric.label == LrcUtils.Label.Voice2 || lyric.label == LrcUtils.Label.Female
+                val lastLyricIsAnotherSpeaker = lyricList.getOrNull(position - 1)?.label == LrcUtils.Label.Voice2 || lyricList.getOrNull(position - 1)?.label == LrcUtils.Label.Female
+                val currentLyricIsBgSpeaker = lyric.label == LrcUtils.Label.Background
 
                 with(lyricFlexboxLayout) {
                     justifyContent =
@@ -1714,11 +1714,11 @@ class FullBottomSheet @JvmOverloads constructor(
                 super.create(position, payloads, lyric)
 
                 val hasMultiSpeaker = lyricList.any {
-                    it.label == LrcUtils.SpeakerLabel.Voice2 || it.label == LrcUtils.SpeakerLabel.Female
+                    it.label == LrcUtils.Label.Voice2 || it.label == LrcUtils.Label.Female
                 }
-                val currentLyricIsAnotherSpeaker = lyric.label == LrcUtils.SpeakerLabel.Voice2 || lyric.label == LrcUtils.SpeakerLabel.Female
-                val lastLyricIsAnotherSpeaker = lyricList.getOrNull(position - 1)?.label == LrcUtils.SpeakerLabel.Voice2 || lyricList.getOrNull(position - 1)?.label == LrcUtils.SpeakerLabel.Female
-                val currentLyricIsBgSpeaker = lyric.label == LrcUtils.SpeakerLabel.Background
+                val currentLyricIsAnotherSpeaker = lyric.label == LrcUtils.Label.Voice2 || lyric.label == LrcUtils.Label.Female
+                val lastLyricIsAnotherSpeaker = lyricList.getOrNull(position - 1)?.label == LrcUtils.Label.Voice2 || lyricList.getOrNull(position - 1)?.label == LrcUtils.Label.Female
+                val currentLyricIsBgSpeaker = lyric.label == LrcUtils.Label.Background
 
                 with(transitionTextView) {
                     pivotX = if (currentLyricIsAnotherSpeaker || (currentLyricIsBgSpeaker && lastLyricIsAnotherSpeaker)) width.toFloat() else 0f
@@ -1800,11 +1800,11 @@ class FullBottomSheet @JvmOverloads constructor(
                 super.create(position, payloads, lyric)
 
                 val hasMultiSpeaker = lyricList.any {
-                    it.label == LrcUtils.SpeakerLabel.Voice2 || it.label == LrcUtils.SpeakerLabel.Female
+                    it.label == LrcUtils.Label.Voice2 || it.label == LrcUtils.Label.Female
                 }
-                val currentLyricIsAnotherSpeaker = lyric.label == LrcUtils.SpeakerLabel.Voice2 || lyric.label == LrcUtils.SpeakerLabel.Female
-                val lastLyricIsAnotherSpeaker = lyricList.getOrNull(position - 1)?.label == LrcUtils.SpeakerLabel.Voice2 || lyricList.getOrNull(position - 1)?.label == LrcUtils.SpeakerLabel.Female
-                val currentLyricIsBgSpeaker = lyric.label == LrcUtils.SpeakerLabel.Background
+                val currentLyricIsAnotherSpeaker = lyric.label == LrcUtils.Label.Voice2 || lyric.label == LrcUtils.Label.Female
+                val lastLyricIsAnotherSpeaker = lyricList.getOrNull(position - 1)?.label == LrcUtils.Label.Voice2 || lyricList.getOrNull(position - 1)?.label == LrcUtils.Label.Female
+                val currentLyricIsBgSpeaker = lyric.label == LrcUtils.Label.Background
 
                 with(lyricTextView) {
                     pivotX = if (currentLyricIsAnotherSpeaker || (currentLyricIsBgSpeaker && lastLyricIsAnotherSpeaker)) width / 1f else 0f
@@ -1896,11 +1896,11 @@ class FullBottomSheet @JvmOverloads constructor(
                 super.create(position, payloads, lyric)
 
                 val hasMultiSpeaker = lyricList.any {
-                    it.label == LrcUtils.SpeakerLabel.Voice2 || it.label == LrcUtils.SpeakerLabel.Female
+                    it.label == LrcUtils.Label.Voice2 || it.label == LrcUtils.Label.Female
                 }
-                val currentLyricIsAnotherSpeaker = lyric.label == LrcUtils.SpeakerLabel.Voice2 || lyric.label == LrcUtils.SpeakerLabel.Female
-                val lastLyricIsAnotherSpeaker = lyricList.getOrNull(position - 1)?.label == LrcUtils.SpeakerLabel.Voice2 || lyricList.getOrNull(position - 1)?.label == LrcUtils.SpeakerLabel.Female
-                val currentLyricIsBgSpeaker = lyric.label == LrcUtils.SpeakerLabel.Background
+                val currentLyricIsAnotherSpeaker = lyric.label == LrcUtils.Label.Voice2 || lyric.label == LrcUtils.Label.Female
+                val lastLyricIsAnotherSpeaker = lyricList.getOrNull(position - 1)?.label == LrcUtils.Label.Voice2 || lyricList.getOrNull(position - 1)?.label == LrcUtils.Label.Female
+                val currentLyricIsBgSpeaker = lyric.label == LrcUtils.Label.Background
 
                 with(transitionTextView) {
                     pivotX = if (currentLyricIsAnotherSpeaker || (currentLyricIsBgSpeaker && lastLyricIsAnotherSpeaker)) width.toFloat() else 0f
@@ -2012,7 +2012,7 @@ class FullBottomSheet @JvmOverloads constructor(
                     activity.getPlayer()?.apply {
                         animationLock = true
                         ignoredPositionAtMost =
-                            if (lyric.label == LrcUtils.SpeakerLabel.Background)
+                            if (lyric.label == LrcUtils.Label.Background)
                                 lyricList.indexOf(lyric) - 1
                             else
                                 lyricList.indexOf(lyric)
@@ -2390,7 +2390,7 @@ class FullBottomSheet @JvmOverloads constructor(
                 if (bottomSheetFullLyricAdapter.currentHighlightLyricPositions.contains(targetFocusLyricPosition) &&
                     bottomSheetFullLyricAdapter.currentFocusLyricPosition != targetFocusLyricPosition &&
                     (bottomSheetFullLyricList.getOrNull(bottomSheetFullLyricAdapter.currentFocusLyricPosition)?.absolutePosition ?: 10721) != bottomSheetFullLyricList.getOrNull(targetFocusLyricPosition)?.absolutePosition &&
-                    bottomSheetFullLyricList.getOrNull(targetFocusLyricPosition)?.label != LrcUtils.SpeakerLabel.Background
+                    bottomSheetFullLyricList.getOrNull(targetFocusLyricPosition)?.label != LrcUtils.Label.Background
                 ) {
                     if (bottomSheetFullLyricList[targetFocusLyricPosition].content.isNotEmpty() &&
                         !isFingerOnScreen
