@@ -19,6 +19,7 @@ package org.akanework.gramophone.ui.adapters
 
 import android.view.MenuItem
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
@@ -27,7 +28,6 @@ import org.akanework.gramophone.logic.findBaseWrapperFragment
 import org.akanework.gramophone.logic.getBooleanStrict
 import org.akanework.gramophone.logic.utils.MediaStoreUtils
 import org.akanework.gramophone.ui.fragments.ArtistSubFragment
-import androidx.core.content.edit
 
 /**
  * [ArtistAdapter] is an adapter for displaying artists.

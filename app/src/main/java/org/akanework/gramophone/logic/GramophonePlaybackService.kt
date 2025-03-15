@@ -112,9 +112,13 @@ class GramophonePlaybackService : MediaLibraryService(), MediaSessionService.Lis
         const val SERVICE_QUERY_TIMER = "query_timer"
         const val SERVICE_GET_LYRICS = "get_lyrics"
         const val SERVICE_TIMER_CHANGED = "changed_timer"
+
+        var instanceForWidgetAndLyricsOnly: GramophonePlaybackService? = null
     }
 
     private var mediaSession: MediaLibrarySession? = null
+    val endedWorkaroundPlayer
+        get() = mediaSession?.player as EndedWorkaroundPlayer?
     private var controller: MediaController? = null
     private var lyrics: MutableList<MediaStoreUtils.Lyric>? = null
     private var shuffleFactory:
@@ -168,6 +172,7 @@ class GramophonePlaybackService : MediaLibraryService(), MediaSessionService.Lis
     }
 
     override fun onCreate() {
+        instanceForWidgetAndLyricsOnly = this
         handler = Handler(Looper.getMainLooper())
         super.onCreate()
         nm = NotificationManagerCompat.from(this)
@@ -198,40 +203,40 @@ class GramophonePlaybackService : MediaLibraryService(), MediaSessionService.Lis
 
         customCommands =
             listOf(
-                CommandButton.Builder() // shuffle currently disabled, click will enable
+                CommandButton.Builder(CommandButton.ICON_SHUFFLE_OFF) // shuffle currently disabled, click will enable
                     .setDisplayName(getString(R.string.shuffle))
                     .setSessionCommand(
                         SessionCommand(PLAYBACK_SHUFFLE_ACTION_ON, Bundle.EMPTY)
                     )
-                    .setIconResId(R.drawable.ic_shuffle_off)
+                    .setCustomIconResId(R.drawable.ic_shuffle_off)
                     .build(),
-                CommandButton.Builder() // shuffle currently enabled, click will disable
+                CommandButton.Builder(CommandButton.ICON_SHUFFLE_ON) // shuffle currently enabled, click will disable
                     .setDisplayName(getString(R.string.shuffle))
                     .setSessionCommand(
                         SessionCommand(PLAYBACK_SHUFFLE_ACTION_OFF, Bundle.EMPTY)
                     )
-                    .setIconResId(R.drawable.ic_shuffle)
+                    .setCustomIconResId(R.drawable.ic_shuffle)
                     .build(),
-                CommandButton.Builder() // repeat currently disabled, click will repeat all
+                CommandButton.Builder(CommandButton.ICON_REPEAT_OFF) // repeat currently disabled, click will repeat all
                     .setDisplayName(getString(R.string.repeat_mode))
                     .setSessionCommand(
                         SessionCommand(PLAYBACK_REPEAT_ALL, Bundle.EMPTY)
                     )
-                    .setIconResId(R.drawable.ic_repeat_off)
+                    .setCustomIconResId(R.drawable.ic_repeat_off)
                     .build(),
-                CommandButton.Builder() // repeat all currently enabled, click will repeat one
+                CommandButton.Builder(CommandButton.ICON_REPEAT_ALL) // repeat all currently enabled, click will repeat one
                     .setDisplayName(getString(R.string.repeat_mode))
                     .setSessionCommand(
                         SessionCommand(PLAYBACK_REPEAT_ONE, Bundle.EMPTY)
                     )
-                    .setIconResId(R.drawable.ic_repeat)
+                    .setCustomIconResId(R.drawable.ic_repeat)
                     .build(),
-                CommandButton.Builder() // repeat one currently enabled, click will disable
+                CommandButton.Builder(CommandButton.ICON_REPEAT_ONE) // repeat one currently enabled, click will disable
                     .setDisplayName(getString(R.string.repeat_mode))
                     .setSessionCommand(
                         SessionCommand(PLAYBACK_REPEAT_OFF, Bundle.EMPTY)
                     )
-                    .setIconResId(R.drawable.ic_repeat_one)
+                    .setCustomIconResId(R.drawable.ic_repeat_one)
                     .build(),
             )
 
@@ -366,6 +371,7 @@ class GramophonePlaybackService : MediaLibraryService(), MediaSessionService.Lis
     // When destroying, we should release server side player
     // alongside with the mediaSession.
     override fun onDestroy() {
+        instanceForWidgetAndLyricsOnly = null
         // Important: this must happen before sending stop() as that changes state ENDED -> IDLE
         lastPlayedManager.save()
         mediaSession!!.player.stop()

@@ -20,6 +20,7 @@ package org.akanework.gramophone.logic.ui
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.view.MotionEvent
+import androidx.core.view.isEmpty
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -28,7 +29,6 @@ import me.zhanghai.android.fastscroll.PopupTextProvider
 import me.zhanghai.android.fastscroll.Predicate
 import kotlin.math.max
 import kotlin.math.min
-import androidx.core.view.isEmpty
 
 // Changes:
 // - Kotlin

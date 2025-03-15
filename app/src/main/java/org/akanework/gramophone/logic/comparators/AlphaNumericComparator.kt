@@ -135,23 +135,23 @@ class AlphaNumericComparator : Comparator<String?> {
     override fun compare(s1: String?, s2: String?): Int {
         var ss1 = s1
         var ss2 = s2
-        if ((ss1 == null || ss1.trim { it <= ' ' }
-                .isEmpty()) && ss2 != null && ss2.trim { it <= ' ' }.isNotEmpty()) {
+        if ((ss1 == null || ss1.trim()
+                .isEmpty()) && ss2 != null && ss2.trim().isNotEmpty()) {
             return -1
         }
-        if ((ss2 == null || ss2.trim { it <= ' ' }
-                .isEmpty()) && ss1 != null && ss1.trim { it <= ' ' }.isNotEmpty()) {
+        if ((ss2 == null || ss2.trim()
+                .isEmpty()) && ss1 != null && ss1.trim().isNotEmpty()) {
             return 1
         }
-        if ((ss1 == null || ss1.trim { it <= ' ' }
-                .isEmpty()) && (ss2 == null || ss2.trim { it <= ' ' }
+        if ((ss1 == null || ss1.trim()
+                .isEmpty()) && (ss2 == null || ss2.trim()
                 .isEmpty())) {
             return 0
         }
         assert(ss1 != null)
-        ss1 = ss1!!.trim { it <= ' ' }
+        ss1 = ss1!!.trim()
         assert(ss2 != null)
-        ss2 = ss2!!.trim { it <= ' ' }
+        ss2 = ss2!!.trim()
         var s1Index = 0
         var s2Index = 0
         while (s1Index < ss1.length && s2Index < ss2.length) {

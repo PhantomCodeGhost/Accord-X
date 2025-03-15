@@ -22,6 +22,7 @@ import android.widget.ImageSwitcher
 import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.doOnLayout
 import kotlinx.coroutines.CoroutineScope
@@ -32,7 +33,6 @@ import org.akanework.gramophone.R
 import java.io.FileNotFoundException
 import java.io.InputStream
 import kotlin.math.ceil
-import androidx.core.graphics.createBitmap
 
 class BlendView @JvmOverloads constructor(
     context: Context,

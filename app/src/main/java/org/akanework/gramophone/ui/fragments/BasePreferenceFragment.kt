@@ -19,18 +19,17 @@ package org.akanework.gramophone.ui.fragments
 
 import android.content.SharedPreferences
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.View
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toDrawable
 import androidx.preference.PreferenceFragmentCompat
 import androidx.recyclerview.widget.RecyclerView
 import org.akanework.gramophone.R
 import org.akanework.gramophone.logic.allowDiskAccessInStrictMode
 import org.akanework.gramophone.logic.dpToPx
 import org.akanework.gramophone.logic.enableEdgeToEdgePaddingListener
-import androidx.core.graphics.drawable.toDrawable
 
 /**
  * BasePreferenceFragment:

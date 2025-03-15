@@ -24,6 +24,7 @@ import android.util.Base64
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.core.content.edit
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackParameters
@@ -37,7 +38,6 @@ import org.akanework.gramophone.BuildConfig
 import org.akanework.gramophone.logic.use
 import org.akanework.gramophone.logic.utils.exoplayer.EndedWorkaroundPlayer
 import java.nio.charset.StandardCharsets
-import androidx.core.net.toUri
 
 @OptIn(UnstableApi::class)
 class LastPlayedManager(context: Context,

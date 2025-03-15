@@ -37,6 +37,7 @@ import android.view.animation.PathInterpolator
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.OptIn
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.Placeholder
@@ -59,6 +60,7 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
@@ -921,12 +923,12 @@ class FullBottomSheet @JvmOverloads constructor(
 
     private fun getDistanceToBottom(view: View): Int {
         val windowMetrics = (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).currentWindowMetrics
-        val screenHeight = windowMetrics.bounds.height()
+        val windowHeight = windowMetrics.bounds.height()
 
         val location = IntArray(2)
-        view.getLocationOnScreen(location)
+        view.getLocationInWindow(location)
 
-        return screenHeight - (location[1] + view.height)
+        return windowHeight - (location[1] + view.height)
     }
 
     private fun hideControllerJob() {
@@ -1626,13 +1628,15 @@ class FullBottomSheet @JvmOverloads constructor(
                 }
             }
 
+            @OptIn(UnstableApi::class)
             fun updateLyric(
                 position: Int,
                 lyric: MediaStoreUtils.Lyric
             ) {
                 lyricProgressAnimator?.cancel()
 
-                val animationDuration = (lyric.endTimestamp ?: 0) - (instance?.currentPosition ?: 0)
+                val animationDuration = (lyric.endTimestamp ?: 0) - (GramophonePlaybackService.instanceForWidgetAndLyricsOnly
+                    ?.endedWorkaroundPlayer?.currentPosition ?: instance?.currentPosition ?: 0)
                 if (animationDuration > 0) {
                     lyricProgressAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
                         duration = animationDuration
@@ -1640,7 +1644,8 @@ class FullBottomSheet @JvmOverloads constructor(
                         addUpdateListener {
                             if (!currentHighlightLyricPositions.contains(position)) lyricProgressAnimator?.cancel()
                             lyricFlexboxLayout.children.getTextViews {
-                                val currentPosition: Long = instance?.currentPosition ?: 0
+                                val currentPosition: Long = GramophonePlaybackService.instanceForWidgetAndLyricsOnly
+                                    ?.endedWorkaroundPlayer?.currentPosition ?: instance?.currentPosition ?: 0
                                 val percent: Float = ((currentPosition.toFloat() - it.durationStart.toFloat()) / (it.durationEnd.toFloat() - it.durationStart.toFloat()))
                                 if (activeAnimatorPosition.contains(position)) {
                                     it.setProgress(percent)
@@ -2035,8 +2040,8 @@ class FullBottomSheet @JvmOverloads constructor(
                     animator.duration = LYRIC_SCROLL_DURATION
                     animator.interpolator = interpolator
                     animator.addUpdateListener { animation ->
-                        val value = animation.animatedValue as Float
-                        blurRadius = value
+                        val animatedValue = animation.animatedValue as Float
+                        blurRadius = animatedValue
                         lyricCard.setRenderEffect(
                             if (blurRadius != 0F) {
                                 RenderEffect.createBlurEffect(
@@ -2069,8 +2074,8 @@ class FullBottomSheet @JvmOverloads constructor(
                 animator.interpolator = inComingInterpolator
                 animator.addUpdateListener {
                     val value = it.animatedValue as Float
-                    view.forEach {
-                        it.translationY = value
+                    view.forEach { v ->
+                        v.translationY = value
                     }
                 }
                 animator.doOnEnd {
@@ -2083,8 +2088,8 @@ class FullBottomSheet @JvmOverloads constructor(
                     animator1.interpolator = liftInterpolator
                     animator1.addUpdateListener {
                         val value = it.animatedValue as Float
-                        view.forEach {
-                            it.translationY = value
+                        view.forEach { v ->
+                            v.translationY = value
                         }
                     }
                     animator1.doOnEnd {
@@ -2330,8 +2335,11 @@ class FullBottomSheet @JvmOverloads constructor(
         }
     }
 
+    // https://github.com/androidx/media/issues/1578
+    @OptIn(UnstableApi::class)
     private fun getNewIndex(): List<Int> {
-        val currentPosition = instance?.currentPosition ?: 0
+        val currentPosition = GramophonePlaybackService.instanceForWidgetAndLyricsOnly
+            ?.endedWorkaroundPlayer?.currentPosition ?: instance?.currentPosition ?: 0
         val filteredList = bottomSheetFullLyricList.filter { lyric ->
             (lyric.startTimestamp ?: 0) <= currentPosition && (lyric.endTimestamp ?: 0) >= currentPosition
         }.map { lyric ->

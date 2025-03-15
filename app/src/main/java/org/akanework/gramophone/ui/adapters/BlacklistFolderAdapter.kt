@@ -4,13 +4,13 @@ import android.content.SharedPreferences
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.checkbox.MaterialCheckBox
 import org.akanework.gramophone.R
 import org.akanework.gramophone.logic.getStringSetStrict
 import org.akanework.gramophone.logic.ui.MyRecyclerView
-import androidx.core.content.edit
 
 class BlacklistFolderAdapter(
     private val fragment: Fragment,

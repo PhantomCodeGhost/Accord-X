@@ -135,7 +135,7 @@ class LibraryFragment : BaseFragment(null), Observer<List<PlaylistWithMediaItem>
                     } else {
                         val originalAlbumMetadataImpl = albumItemMap?.get(song.mediaMetadata.albumTitle)
                         originalAlbumMetadataImpl?.let {
-                            if (it.songList.any { it.mediaId == song.mediaId }) {
+                            if (it.songList.any { song -> song.mediaId == song.mediaId }) {
                                 libraryViewModel.privateAlbumList.add(
                                     AlbumLibrary(
                                         id = it.id,

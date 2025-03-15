@@ -1,6 +1,7 @@
 package org.akanework.gramophone.logic.utils
 
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import org.akanework.gramophone.ui.adapters.AlbumAdapter
 import org.akanework.gramophone.ui.adapters.ArtistAdapter
 import org.akanework.gramophone.ui.adapters.BaseAdapter
@@ -8,7 +9,6 @@ import org.akanework.gramophone.ui.adapters.DateAdapter
 import org.akanework.gramophone.ui.adapters.GenreAdapter
 import org.akanework.gramophone.ui.adapters.PlaylistAdapter
 import org.akanework.gramophone.ui.adapters.SongAdapter
-import androidx.core.content.edit
 
 object FileOpUtils {
     fun getAdapterType(adapter: BaseAdapter<*>) =

@@ -14,10 +14,10 @@ import android.graphics.Shader
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.widget.FrameLayout
+import androidx.core.content.withStyledAttributes
 import androidx.core.view.doOnLayout
 import org.akanework.gramophone.R
 import kotlin.math.min
-import androidx.core.content.withStyledAttributes
 
 class FadingVerticalEdgeLayout @JvmOverloads constructor(
     context: Context,
