@@ -106,7 +106,7 @@ object LrcUtils {
         val wordTimeMarksRegex = "<(\\d{2}:\\d{2})([.:]\\d+)?>".toRegex()
         val labelRegex = "(?![\\d<])(\\d+|v\\d+|bg|F|M|D):(\\s?|.*:\\d)".toRegex()
         val labelRegexNumberOnly = "\\d+:\\s?".toRegex()
-        val bgRegex = "\\[bg: (.*?)]".toRegex()
+        val bgRegex = "\\[bg:\\s?(.*?)]".toRegex()
         val list = mutableListOf<MediaStoreUtils.Lyric>()
         var currentLabel: Label
         var currentTimeStamp = -1L
@@ -195,7 +195,7 @@ object LrcUtils {
                 }
                 result.forEach { match ->
                     currentLabel = Label.Background
-                    val lyricLine = match.value.substring(5, match.value.length - 1)
+                    val lyricLine = match.value.substring(4, match.value.length - 1).trim()
                     if (wordTimeMarksRegex.containsMatchIn(lyricLine)) {
                         val wordMatches = wordTimeMarksRegex.findAll(lyricLine)
                         val words = lyricLine.split(wordTimeMarksRegex)
