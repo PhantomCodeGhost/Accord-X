@@ -131,6 +131,10 @@ android {
         includeInApk = false
         includeInBundle = false
     }
+
+    lint {
+        checkReleaseBuilds = false
+    }
 }
 
 // https://stackoverflow.com/a/77745844
