@@ -60,6 +60,7 @@ import androidx.core.view.children
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updateMargins
 import androidx.fragment.app.Fragment
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
@@ -77,6 +78,7 @@ import kotlinx.coroutines.sync.Semaphore
 import org.akanework.gramophone.BuildConfig
 import org.akanework.gramophone.R
 import org.akanework.gramophone.logic.GramophonePlaybackService.Companion.SERVICE_GET_LYRICS
+import org.akanework.gramophone.logic.GramophonePlaybackService.Companion.SERVICE_GET_SESSION
 import org.akanework.gramophone.logic.GramophonePlaybackService.Companion.SERVICE_QUERY_TIMER
 import org.akanework.gramophone.logic.GramophonePlaybackService.Companion.SERVICE_SET_TIMER
 import org.akanework.gramophone.logic.utils.MediaStoreUtils
@@ -258,6 +260,14 @@ fun MediaController.getLyrics(): MutableList<MediaStoreUtils.Lyric>? =
     ).get().extras.let {
         (BundleCompat.getParcelableArray(it, "lyrics", MediaStoreUtils.Lyric::class.java)
                 as Array<MediaStoreUtils.Lyric>?)?.toMutableList()
+    }
+
+fun MediaController.getSessionId(): Int? =
+    sendCustomCommand(
+        SessionCommand(SERVICE_GET_SESSION, Bundle.EMPTY),
+        Bundle.EMPTY
+    ).get().extras.getInt("session", C.AUDIO_SESSION_ID_UNSET).let {
+        if (it == C.AUDIO_SESSION_ID_UNSET) null else it
     }
 
 // https://twitter.com/Piwai/status/1529510076196630528
@@ -569,8 +579,13 @@ fun MaterialToolbar.applyGeneralMenuItem(
     this.setOnMenuItemClickListener {
         when (it.itemId) {
             R.id.equalizer -> {
-                val intent = Intent("android.media.action.DISPLAY_AUDIO_EFFECT_CONTROL_PANEL")
-                    .addCategory("android.intent.category.CATEGORY_CONTENT_MUSIC")
+                val intent = Intent(android.media.audiofx.AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
+                    putExtra(android.media.audiofx.AudioEffect.EXTRA_PACKAGE_NAME, fragment.requireContext().packageName)
+                    putExtra(android.media.audiofx.AudioEffect.EXTRA_AUDIO_SESSION,
+                        (fragment.requireActivity() as MainActivity).getPlayer()?.getSessionId())
+                    putExtra(android.media.audiofx.AudioEffect.EXTRA_CONTENT_TYPE,
+                        android.media.audiofx.AudioEffect.CONTENT_TYPE_MUSIC)
+                }
                 try {
                     (fragment.requireActivity() as MainActivity).startingActivity.launch(intent)
                 } catch (_: ActivityNotFoundException) {
