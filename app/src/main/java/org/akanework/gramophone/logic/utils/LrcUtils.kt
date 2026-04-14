@@ -102,8 +102,8 @@ object LrcUtils {
      */
     @VisibleForTesting
     fun parseLrcString(lrcContent: String, trim: Boolean): MutableList<MediaStoreUtils.Lyric> {
-        val timeMarksRegex = "\\[(\\d{2}:\\d{2})([.:]\\d+)?]".toRegex()
-        val wordTimeMarksRegex = "<(\\d{2}:\\d{2})([.:]\\d+)?>".toRegex()
+        val timeMarksRegex = "\\[(\\d+:\\d{2})([.:]\\d+)?]".toRegex()
+        val wordTimeMarksRegex = "<(\\d+:\\d{2})([.:]\\d+)?>".toRegex()
         val labelRegex = "(?![\\d<])(\\d+|v\\d+|bg|F|M|D):(\\s?|.*:\\d)".toRegex()
         val labelRegexNumberOnly = "\\d+:\\s?".toRegex()
         val bgRegex = "\\[bg:\\s?(.*?)]".toRegex()
@@ -313,7 +313,7 @@ object LrcUtils {
     }
 
     private fun parseTime(timeString: String): Long {
-        val timeRegex = "(\\d{2}):(\\d{2})[.:](\\d+)".toRegex()
+        val timeRegex = "(\\d+):(\\d{2})[.:](\\d+)".toRegex()
         val matchResult = timeRegex.find(timeString)
 
         val minutes = matchResult?.groupValues?.get(1)?.toLongOrNull() ?: 0
