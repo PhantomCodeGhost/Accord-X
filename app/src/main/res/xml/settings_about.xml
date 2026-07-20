@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-  ~     Copyright (C) 2024 Akane Foundation
+  ~     Copyright (C) 2024 Phantom Foundation
   ~
   ~     Gramophone is free software: you can redistribute it and/or modify
   ~     it under the terms of the GNU General Public License as published by
@@ -58,12 +58,12 @@
 
         <Preference
             android:layout="@layout/preference_basic"
-            android:summary="https://github.com/AkaneFoundation/Accord"
+            android:summary="https://github.com/PhantomFoundation/Accord"
             android:title="@string/settings_repository"
             app:iconSpaceReserved="false">
             <intent
                 android:action="android.intent.action.VIEW"
-                android:data="https://github.com/AkaneFoundation/Accord" />
+                android:data="https://github.com/PhantomFoundation/Accord" />
         </Preference>
 
         <Preference
@@ -73,7 +73,7 @@
             app:iconSpaceReserved="false">
             <intent
                 android:action="android.intent.action.VIEW"
-                android:data="https://t.me/AkaneDistribution" />
+                android:data="https://t.me/PhantomDistribution" />
         </Preference>
 
     </PreferenceCategory>

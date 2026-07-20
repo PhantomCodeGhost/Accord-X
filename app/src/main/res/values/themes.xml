@@ -108,7 +108,7 @@
         <item name="marginRightSystemWindowInsets">false</item>
         <item name="android:elevation">0dp</item>
         <item name="paddingBottomSystemWindowInsets">false</item>
-        <item name="layout_behavior">org.akanework.gramophone.logic.ui.MyBottomSheetBehavior</item>
+        <item name="layout_behavior">com.phantom.accord.logic.ui.MyBottomSheetBehavior</item>
     </style>
 
     <style name="BottomPlayerCornerShape">

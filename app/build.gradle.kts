@@ -17,7 +17,7 @@ android {
         throw IllegalArgumentException("releaseType must not contain \"")
     }
 
-    namespace = "org.akanework.gramophone"
+    namespace = "com.phantom.accord"
     compileSdk = 36
     buildToolsVersion = "36.0.0"
     ndkVersion = "28.0.13004108"
@@ -50,7 +50,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "uk.akane.accord"
+        applicationId = "com.phantom.accord"
         // Reasons to not support KK include me.zhanghai.android.fastscroll, WindowInsets for
         // bottom sheet padding, ExoPlayer requiring multidex for KK and poor SD card support
         // That said, supporting Android 5.0 barely costs any tech debt and we plan to keep support
@@ -75,11 +75,11 @@ android {
 
     signingConfigs {
         create("release") {
-            if (project.hasProperty("AKANE_RELEASE_KEY_ALIAS")) {
-                storeFile = file(project.properties["AKANE_RELEASE_STORE_FILE"].toString())
-                storePassword = project.properties["AKANE_RELEASE_STORE_PASSWORD"].toString()
-                keyAlias = project.properties["AKANE_RELEASE_KEY_ALIAS"].toString()
-                keyPassword = project.properties["AKANE_RELEASE_KEY_PASSWORD"].toString()
+            if (project.hasProperty("PHANTOM_RELEASE_KEY_ALIAS")) {
+                storeFile = file(project.properties["PHANTOM_RELEASE_STORE_FILE"].toString())
+                storePassword = project.properties["PHANTOM_RELEASE_STORE_PASSWORD"].toString()
+                keyAlias = project.properties["PHANTOM_RELEASE_KEY_ALIAS"].toString()
+                keyPassword = project.properties["PHANTOM_RELEASE_KEY_PASSWORD"].toString()
             }
         }
     }
@@ -114,13 +114,13 @@ android {
                 isMinifyEnabled = false
                 isProfileable = true
             }
-            if (project.hasProperty("AKANE_RELEASE_KEY_ALIAS")) {
+            if (project.hasProperty("PHANTOM_RELEASE_KEY_ALIAS")) {
                 signingConfig = signingConfigs["release"]
             }
         }
         debug {
             applicationIdSuffix = ".debug"
-            if (project.hasProperty("AKANE_RELEASE_KEY_ALIAS")) {
+            if (project.hasProperty("PHANTOM_RELEASE_KEY_ALIAS")) {
                 signingConfig = signingConfigs["release"]
             }
         }
@@ -172,6 +172,8 @@ configurations.configureEach {
 dependencies {
     val media3Version = "1.6.0-rc01"
     val roomVersion = "2.7.0-rc02"
+
+    implementation("androidx.palette:palette-ktx:1.0.0")
 
     ksp("androidx.room:room-compiler:$roomVersion")
     implementation("androidx.room:room-runtime:$roomVersion")

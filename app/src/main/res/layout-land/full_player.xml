@@ -61,7 +61,7 @@
             app:layout_constraintStart_toEndOf="@id/playlist_cover_frame"
             app:layout_constraintTop_toTopOf="@id/playlist_cover_frame">
 
-            <org.akanework.gramophone.ui.components.MarqueeTextView
+            <com.phantom.accord.ui.components.MarqueeTextView
                 android:id="@+id/playlist_song_name"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -87,7 +87,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/playlist_song_name">
 
-                <org.akanework.gramophone.ui.components.MarqueeTextView
+                <com.phantom.accord.ui.components.MarqueeTextView
                     android:id="@+id/playlist_song_artist_under"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -100,7 +100,7 @@
                     android:textSize="18sp"
                     tools:text="Artifiction" />
 
-                <org.akanework.gramophone.ui.components.MarqueeTextView
+                <com.phantom.accord.ui.components.MarqueeTextView
                     android:id="@+id/playlist_song_artist"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -269,7 +269,7 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <org.akanework.gramophone.ui.components.FadingVerticalEdgeLayout
+    <com.phantom.accord.ui.components.FadingVerticalEdgeLayout
         android:id="@+id/fadingEdgeLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -293,7 +293,7 @@
             android:scrollbars="none"
             tools:listitem="@layout/lyric_syllable" />
 
-    </org.akanework.gramophone.ui.components.FadingVerticalEdgeLayout>
+    </com.phantom.accord.ui.components.FadingVerticalEdgeLayout>
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/album_cover_frame"
@@ -349,7 +349,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <org.akanework.gramophone.ui.components.MarqueeTextView
+            <com.phantom.accord.ui.components.MarqueeTextView
                 android:id="@+id/full_song_name"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -374,7 +374,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/full_song_name">
 
-                <org.akanework.gramophone.ui.components.MarqueeTextView
+                <com.phantom.accord.ui.components.MarqueeTextView
                     android:id="@+id/full_song_artist_under"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -387,7 +387,7 @@
                     android:textSize="20sp"
                     tools:text="Artifiction" />
 
-                <org.akanework.gramophone.ui.components.MarqueeTextView
+                <com.phantom.accord.ui.components.MarqueeTextView
                     android:id="@+id/full_song_artist"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
