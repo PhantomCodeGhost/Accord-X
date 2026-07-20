@@ -772,9 +772,9 @@ class FullBottomSheet @JvmOverloads constructor(
 
         val moreButtonClickListener = View.OnClickListener {
             it.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
-            val metadata = instance?.currentMediaItem?.mediaMetadata
-            if (metadata != null) {
-                val dialog = com.phantom.accord.ui.fragments.SongOptionsDialog(metadata)
+            val mediaItem = instance?.currentMediaItem
+            if (mediaItem != null) {
+                val dialog = com.phantom.accord.ui.fragments.SongOptionsDialog(mediaItem)
                 dialog.show(activity.supportFragmentManager, com.phantom.accord.ui.fragments.SongOptionsDialog.TAG)
             }
         }

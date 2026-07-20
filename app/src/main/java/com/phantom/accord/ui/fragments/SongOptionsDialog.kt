@@ -6,15 +6,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.lifecycle.lifecycleScope
 import coil3.load
 import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.phantom.accord.R
-import androidx.media3.common.MediaMetadata
+import com.phantom.accord.logic.utils.DatabaseUtils
+import kotlinx.coroutines.launch
 
-class SongOptionsDialog(private val metadata: MediaMetadata) : BottomSheetDialogFragment() {
+class SongOptionsDialog(private val mediaItem: androidx.media3.common.MediaItem) : BottomSheetDialogFragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -28,6 +30,8 @@ class SongOptionsDialog(private val metadata: MediaMetadata) : BottomSheetDialog
         val artistTextView = view.findViewById<TextView>(R.id.dialog_song_artist)
         val albumTextView = view.findViewById<TextView>(R.id.dialog_song_album)
 
+        val metadata = mediaItem.mediaMetadata
+
         albumCoverImageView.load(metadata.artworkUri) {
             crossfade(true)
             placeholder(R.drawable.ic_default_cover)
@@ -38,16 +42,31 @@ class SongOptionsDialog(private val metadata: MediaMetadata) : BottomSheetDialog
         artistTextView.text = metadata.artist
         albumTextView.text = metadata.albumTitle
 
-        view.findViewById<View>(R.id.option_sleep_timer).setOnClickListener {
+        view.findViewById<View>(R.id.option_sleep_timer)?.setOnClickListener {
             dismiss()
             val sleepTimerDialog = SleepTimerDialog()
             sleepTimerDialog.show(parentFragmentManager, SleepTimerDialog.TAG)
         }
 
-        view.findViewById<View>(R.id.option_view_credits).setOnClickListener {
+        view.findViewById<View>(R.id.option_view_credits)?.setOnClickListener {
             dismiss()
             val creditsDialog = CreditsDialog(metadata)
             creditsDialog.show(parentFragmentManager, CreditsDialog.TAG)
+        }
+
+        view.findViewById<View>(R.id.option_undo_favourite)?.setOnClickListener {
+            dismiss()
+            val activity = requireActivity() as? com.phantom.accord.ui.MainActivity
+            if (activity != null) {
+                lifecycleScope.launch {
+                    val idLong = mediaItem.mediaId.toLongOrNull() ?: return@launch
+                    DatabaseUtils.removeFavouriteSong(
+                        idLong,
+                        activity.libraryViewModel,
+                        activity
+                    )
+                }
+            }
         }
 
         return view

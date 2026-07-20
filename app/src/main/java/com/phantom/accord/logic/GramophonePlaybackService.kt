@@ -369,6 +369,21 @@ class GramophonePlaybackService : MediaLibraryService(), MediaSessionService.Lis
         )
     }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        when (intent?.action) {
+            com.phantom.accord.ui.widgets.PlaybackWidgetProvider.ACTION_TOGGLE_PLAY -> {
+                if (controller?.isPlaying == true) controller?.pause() else controller?.play()
+            }
+            com.phantom.accord.ui.widgets.PlaybackWidgetProvider.ACTION_NEXT -> {
+                controller?.seekToNextMediaItem()
+            }
+            com.phantom.accord.ui.widgets.PlaybackWidgetProvider.ACTION_PREV -> {
+                controller?.seekToPreviousMediaItem()
+            }
+        }
+        return super.onStartCommand(intent, flags, startId)
+    }
+
     // When destroying, we should release server side player
     // alongside with the mediaSession.
     override fun onDestroy() {
