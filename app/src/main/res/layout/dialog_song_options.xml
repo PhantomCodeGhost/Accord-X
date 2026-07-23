@@ -60,7 +60,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Artist"
-                        android:textColor="?attr/colorPrimary"
+                        android:textColor="@color/contrast_themeColor"
                         android:textSize="14sp"/>
 
                     <TextView
@@ -81,26 +81,7 @@
 
             <!-- Options -->
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp"
-                android:background="?attr/selectableItemBackground">
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_nowplaying_lyrics"
-                    app:tint="?attr/colorPrimary"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:text="Share Lyrics..."
-                    android:textColor="?android:attr/textColorPrimary"
-                    android:textSize="16sp"/>
-            </LinearLayout>
+
 
             <LinearLayout
                 android:id="@+id/option_view_credits"
@@ -114,7 +95,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_info"
-                    app:tint="?attr/colorPrimary"/>
+                    app:tint="@color/contrast_themeColor"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -135,7 +116,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_experiment"
-                    app:tint="?attr/colorPrimary"/>
+                    app:tint="@color/contrast_themeColor"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -157,34 +138,12 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_alarm_on"
-                    app:tint="?attr/colorPrimary"/>
+                    app:tint="@color/contrast_themeColor"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:text="Sleep Timer"
-                    android:textColor="?android:attr/textColorPrimary"
-                    android:textSize="16sp"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/option_undo_favourite"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp"
-                android:background="?attr/selectableItemBackground">
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_star_filled"
-                    app:tint="?attr/colorPrimary"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:text="Undo Favourite"
                     android:textColor="?android:attr/textColorPrimary"
                     android:textSize="16sp"/>
             </LinearLayout>

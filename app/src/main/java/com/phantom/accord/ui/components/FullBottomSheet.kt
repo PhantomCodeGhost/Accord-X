@@ -91,6 +91,7 @@ import com.google.android.material.transition.MaterialContainerTransform
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.phantom.accord.logic.getFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -279,6 +280,11 @@ class FullBottomSheet @JvmOverloads constructor(
     private val bottomSheetFullDurationBack: TextView
     private val bottomSheetFullPosition: TextView
     private val bottomSheetFullPositionBack: TextView
+    private var isBottomSheetOpened = false
+
+    private var currentCodecStr: String = ""
+    private var currentSubtitleStr: String = ""
+    private var isCurrentLossless: Boolean = false
     private val bottomSheetShuffleButton: MaterialButton
     private val bottomSheetLoopButton: MaterialButton
     private val bottomSheetPlaylistButton: MaterialButton
@@ -306,8 +312,12 @@ class FullBottomSheet @JvmOverloads constructor(
     private val bottomSheetFullPlaylistAdapter: PlaylistCardAdapter
     private val bottomSheetFullPlaylistCoverFrame: MaterialCardView
     private val bottomSheetQualityOverlay: View
-    private val bottomSheetQualityFrame: View
+    private val bottomSheetQualityFrame: LinearLayout
     private val bottomSheetQualityCard: View
+    private val bottomSheetQualityIcon: ImageView
+    private val bottomSheetQualityText: TextView
+    private val bottomSheetQualityIconShade: ImageView
+    private val bottomSheetQualityTextShade: TextView
     private val bottomSheetStarButton: MaterialButton
     private val bottomSheetMoreButton: MaterialButton
     private val bottomSheetMoreButtonPlaylist: MaterialButton
@@ -402,9 +412,13 @@ class FullBottomSheet @JvmOverloads constructor(
         bottomSheetMoreButtonPlaylistBackground = findViewById(R.id.more_btn_playlist_bg)
         bottomSheetInfinityButton = findViewById(R.id.sheet_infinity)
         bottomSheetActionBar = findViewById(R.id.actionBar)
-        bottomSheetQualityOverlay = findViewById(R.id.quality_overlay)
-        bottomSheetQualityFrame = findViewById(R.id.quality_frame)
-        bottomSheetQualityCard = findViewById(R.id.quality_card)
+        bottomSheetQualityOverlay = findViewById<View>(R.id.quality_overlay)
+        bottomSheetQualityFrame = findViewById<LinearLayout>(R.id.quality_frame)
+        bottomSheetQualityCard = findViewById<View>(R.id.quality_card)
+        bottomSheetQualityIcon = findViewById<ImageView>(R.id.quality_icon)
+        bottomSheetQualityText = findViewById<TextView>(R.id.quality_text)
+        bottomSheetQualityIconShade = findViewById<ImageView>(R.id.quality_icon_shade)
+        bottomSheetQualityTextShade = findViewById<TextView>(R.id.quality_text_shade)
         bottomSheetFadingVerticalEdgeLayout = findViewById(R.id.fadingEdgeLayout)
         bottomSheetFullLyricButtonUnder = findViewById(R.id.lyric_btn_under)
         bottomSheetPlaylistButtonUnder = findViewById(R.id.playlist_under)
@@ -582,6 +596,36 @@ class FullBottomSheet @JvmOverloads constructor(
                 bottomSheetLoopButton.isEnabled = true
                 instance?.repeatMode = Player.REPEAT_MODE_OFF
             }
+        }
+
+        bottomSheetQualityCard.setOnClickListener {
+            val dialogView = activity.layoutInflater.inflate(R.layout.dialog_audio_codec, null)
+            
+            val titleView = dialogView.findViewById<TextView>(R.id.codec_title)
+            val subtitleView = dialogView.findViewById<TextView>(R.id.codec_subtitle)
+
+            titleView.text = currentCodecStr
+            subtitleView.text = currentSubtitleStr
+
+            val dialog = com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
+                .setView(dialogView)
+                .setBackground(android.graphics.drawable.ColorDrawable(android.graphics.Color.parseColor("#1C1C1E")))
+                .setPositiveButton("OK") { d, _ -> d.dismiss() }
+                .setNegativeButton("Settings") { d, _ -> d.dismiss() }
+                .create()
+                
+            // Set corner radius programmatically to match design
+            dialog.window?.setBackgroundDrawable(
+                com.google.android.material.shape.MaterialShapeDrawable().apply {
+                    fillColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#1C1C1E"))
+                    shapeAppearanceModel = shapeAppearanceModel.toBuilder().setAllCorners(com.google.android.material.shape.CornerFamily.ROUNDED, 48f).build()
+                }
+            )
+
+            dialog.show()
+            
+            dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE)?.setTextColor(android.graphics.Color.parseColor("#FF3B30"))
+            dialog.getButton(android.app.AlertDialog.BUTTON_NEGATIVE)?.setTextColor(android.graphics.Color.parseColor("#FF3B30"))
         }
 
         bottomSheetFullPlaylistCoverFrame.setOnClickListener {
@@ -1006,11 +1050,88 @@ class FullBottomSheet @JvmOverloads constructor(
         bottomSheetActionBar.fadInAnimation(interpolator, BOTTOM_TRANSIT_DURATION)
     }
 
-    private fun isHires(boolean: Boolean) {
-        if (!bottomSheetQualityCard.isVisible && boolean) {
-            bottomSheetQualityCard.fadInAnimation(interpolator, VIEW_TRANSIT_DURATION)
-        } else if (bottomSheetQualityCard.isVisible && !boolean) {
-            bottomSheetQualityCard.fadOutAnimation(interpolator, VIEW_TRANSIT_DURATION)
+    private fun updateQualityCard(mediaItem: androidx.media3.common.MediaItem?) {
+        if (mediaItem == null) {
+            if (bottomSheetQualityCard.isVisible) bottomSheetQualityCard.fadOutAnimation(interpolator, VIEW_TRANSIT_DURATION)
+            return
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val file = mediaItem.getFile()
+                if (file != null && file.exists()) {
+                    val retriever = android.media.MediaMetadataRetriever()
+                    retriever.setDataSource(file.absolutePath)
+                    
+                    val bitrateStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_BITRATE)
+                    val sampleRateStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_SAMPLERATE)
+                    var bitsPerSampleStr: String? = null
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                        bitsPerSampleStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_BITS_PER_SAMPLE)
+                    }
+                    val mimeType = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_MIMETYPE) ?: mediaItem.localConfiguration?.mimeType ?: ""
+
+                    retriever.release()
+
+                    val isLossless = mimeType.contains("flac", ignoreCase = true) || mimeType.contains("alac", ignoreCase = true) || mimeType.contains("wav", ignoreCase = true)
+                    
+                    val ext = file.extension.uppercase()
+                    val codec = when {
+                        mimeType.contains("flac", ignoreCase = true) -> "FLAC"
+                        mimeType.contains("alac", ignoreCase = true) -> "ALAC"
+                        mimeType.contains("wav", ignoreCase = true) -> "WAV"
+                        mimeType.contains("mp3", ignoreCase = true) -> "MP3"
+                        mimeType.contains("aac", ignoreCase = true) || mimeType.contains("m4a", ignoreCase = true) -> "AAC"
+                        mimeType.contains("ogg", ignoreCase = true) -> "OGG"
+                        ext.isNotEmpty() -> ext
+                        else -> "UNKNOWN"
+                    }
+
+                    val bitDepthInt = bitsPerSampleStr?.toIntOrNull() ?: 16
+                    val sampleRateKhz = (sampleRateStr?.toFloatOrNull() ?: 44100f) / 1000f
+                    val formattedSampleRate = if (sampleRateKhz % 1.0f == 0f) "${sampleRateKhz.toInt()}" else String.format("%.1f", sampleRateKhz)
+                    val bitrateKbps = (bitrateStr?.toFloatOrNull() ?: 320000f) / 1000f
+
+                    val (chipText, subtitleText) = if (isLossless) {
+                        val title = when {
+                            sampleRateKhz >= 176.4f -> "Hi-Res $codec Max"
+                            sampleRateKhz > 48f -> "Hi-Res $codec"
+                            else -> "$codec Lossless"
+                        }
+                        val sub = "$bitDepthInt-bit / $formattedSampleRate kHz"
+                        Pair(title, sub)
+                    } else {
+                        val title = "${bitrateKbps.toInt()} KBPS $codec"
+                        val sub = "$formattedSampleRate kHz"
+                        Pair(title, sub)
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        currentCodecStr = chipText
+                        currentSubtitleStr = subtitleText
+                        isCurrentLossless = isLossless
+
+                        bottomSheetQualityText.text = chipText
+                        bottomSheetQualityTextShade.text = chipText
+
+                        bottomSheetQualityIcon.isVisible = isLossless
+                        bottomSheetQualityIconShade.isVisible = isLossless
+
+                        if (!bottomSheetQualityCard.isVisible) {
+                            bottomSheetQualityCard.fadInAnimation(interpolator, VIEW_TRANSIT_DURATION)
+                        }
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        if (bottomSheetQualityCard.isVisible) bottomSheetQualityCard.fadOutAnimation(interpolator, VIEW_TRANSIT_DURATION)
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    if (bottomSheetQualityCard.isVisible) bottomSheetQualityCard.fadOutAnimation(interpolator, VIEW_TRANSIT_DURATION)
+                }
+            }
         }
     }
 
@@ -1226,7 +1347,7 @@ class FullBottomSheet @JvmOverloads constructor(
                 interpolator = interpolator,
                 skipAnimation = firstTime
             )
-            isHires(mediaItem?.localConfiguration?.mimeType?.contains("flac") == true)
+            updateQualityCard(mediaItem)
             startQueryFavourite()
             if (playlistNowPlaying != null) {
                 playlistNowPlaying!!.text = mediaItem?.mediaMetadata?.title

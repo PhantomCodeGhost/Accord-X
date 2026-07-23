@@ -54,20 +54,6 @@ class SongOptionsDialog(private val mediaItem: androidx.media3.common.MediaItem)
             creditsDialog.show(parentFragmentManager, CreditsDialog.TAG)
         }
 
-        view.findViewById<View>(R.id.option_undo_favourite)?.setOnClickListener {
-            dismiss()
-            val activity = requireActivity() as? com.phantom.accord.ui.MainActivity
-            if (activity != null) {
-                lifecycleScope.launch {
-                    val idLong = mediaItem.mediaId.toLongOrNull() ?: return@launch
-                    DatabaseUtils.removeFavouriteSong(
-                        idLong,
-                        activity.libraryViewModel,
-                        activity
-                    )
-                }
-            }
-        }
 
         return view
     }

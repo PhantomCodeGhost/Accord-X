@@ -571,6 +571,7 @@
                     android:layout_height="match_parent">
 
                     <ImageView
+                        android:id="@+id/quality_icon"
                         android:layout_width="15dp"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"
@@ -582,6 +583,7 @@
                         app:tint="@color/contrast_primaryOverlayColor" />
 
                     <TextView
+                        android:id="@+id/quality_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
@@ -602,6 +604,7 @@
                     android:layout_height="match_parent">
 
                     <ImageView
+                        android:id="@+id/quality_icon_shade"
                         android:layout_width="15dp"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"
@@ -613,6 +616,7 @@
                         app:tint="@color/contrast_primaryOverlayShadeColor" />
 
                     <TextView
+                        android:id="@+id/quality_text_shade"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
