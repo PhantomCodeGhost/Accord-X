@@ -55,6 +55,13 @@
             android:widgetLayout="@layout/preference_switch_widget"
             app:iconSpaceReserved="false" />
 
+        <Preference
+            android:key="supported_codecs"
+            android:layout="@layout/preference_basic"
+            android:title="Supported Codecs"
+            android:summary="View all audio formats and extensions supported by the app"
+            app:iconSpaceReserved="false" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>

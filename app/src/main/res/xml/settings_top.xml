@@ -69,4 +69,11 @@
         android:summary="@string/settings_about_gramophone"
         android:title="@string/settings_about_app" />
 
+    <Preference
+        android:icon="@drawable/ic_settings"
+        android:key="backup_restore"
+        android:layout="@layout/preference_basic"
+        android:title="Backup &amp; Restore"
+        android:summary="Import or export app data" />
+
 </PreferenceScreen>

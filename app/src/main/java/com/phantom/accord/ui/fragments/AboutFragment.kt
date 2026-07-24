@@ -46,6 +46,10 @@ class AboutFragment : BaseElevatedFragment(null) {
                 .commit()
         }
 
+        rootView.findViewById<View>(R.id.check_updates_button).setOnClickListener {
+            com.phantom.accord.logic.utils.UpdateUtils.checkForUpdates(requireContext(), true)
+        }
+
         return rootView
     }
 }

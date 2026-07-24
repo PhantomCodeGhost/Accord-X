@@ -282,6 +282,7 @@ class FullBottomSheet @JvmOverloads constructor(
     private val bottomSheetFullPositionBack: TextView
     private var isBottomSheetOpened = false
 
+    private var currentChipStr: String = ""
     private var currentCodecStr: String = ""
     private var currentSubtitleStr: String = ""
     private var isCurrentLossless: Boolean = false
@@ -550,6 +551,14 @@ class FullBottomSheet @JvmOverloads constructor(
                     bottomSheetStarButtonPlaylistBackground.setImageResource(
                         targetRes
                     )
+                    
+                    val tintColor = if (b) android.graphics.Color.parseColor("#EBFFFFFF") else context.getColor(R.color.contrast_primaryOverlayShadeColor)
+                    bottomSheetStarButton.iconTint = android.content.res.ColorStateList.valueOf(tintColor)
+                    bottomSheetStarButtonPlaylist.iconTint = android.content.res.ColorStateList.valueOf(tintColor)
+                    
+                    val bgTintColor = if (b) android.graphics.Color.parseColor("#EBFFFFFF") else context.getColor(R.color.contrast_primaryOverlayColor)
+                    bottomSheetStarButtonBackground.imageTintList = android.content.res.ColorStateList.valueOf(bgTintColor)
+                    bottomSheetStarButtonPlaylistBackground.imageTintList = android.content.res.ColorStateList.valueOf(bgTintColor)
                 }
             }
         }
@@ -582,6 +591,14 @@ class FullBottomSheet @JvmOverloads constructor(
                     bottomSheetStarButtonPlaylistBackground.setImageResource(
                         targetRes
                     )
+                    
+                    val tintColor = if (b) android.graphics.Color.parseColor("#EBFFFFFF") else context.getColor(R.color.contrast_primaryOverlayShadeColor)
+                    bottomSheetStarButton.iconTint = android.content.res.ColorStateList.valueOf(tintColor)
+                    bottomSheetStarButtonPlaylist.iconTint = android.content.res.ColorStateList.valueOf(tintColor)
+                    
+                    val bgTintColor = if (b) android.graphics.Color.parseColor("#EBFFFFFF") else context.getColor(R.color.contrast_primaryOverlayColor)
+                    bottomSheetStarButtonBackground.imageTintList = android.content.res.ColorStateList.valueOf(bgTintColor)
+                    bottomSheetStarButtonPlaylistBackground.imageTintList = android.content.res.ColorStateList.valueOf(bgTintColor)
                 }
             }
         }
@@ -623,6 +640,10 @@ class FullBottomSheet @JvmOverloads constructor(
             )
 
             dialog.show()
+
+            // Apply exact width for the compact card size, approx 348dp (increased by 20%)
+            val width = (348 * activity.resources.displayMetrics.density).toInt()
+            dialog.window?.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT)
             
             dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE)?.setTextColor(android.graphics.Color.parseColor("#FF3B30"))
             dialog.getButton(android.app.AlertDialog.BUTTON_NEGATIVE)?.setTextColor(android.graphics.Color.parseColor("#FF3B30"))
@@ -1073,16 +1094,22 @@ class FullBottomSheet @JvmOverloads constructor(
 
                     retriever.release()
 
-                    val isLossless = mimeType.contains("flac", ignoreCase = true) || mimeType.contains("alac", ignoreCase = true) || mimeType.contains("wav", ignoreCase = true)
-                    
                     val ext = file.extension.uppercase()
+                    val isLossless = mimeType.contains("flac", ignoreCase = true) || mimeType.contains("alac", ignoreCase = true) || mimeType.contains("wav", ignoreCase = true) || ext == "WAV" || ext == "APE" || ext == "AIFF" || ext == "AIF" || ext == "DSD" || ext == "DSF" || ext == "DFF" || ext == "ALAC" || ext == "FLAC"
+                    
                     val codec = when {
-                        mimeType.contains("flac", ignoreCase = true) -> "FLAC"
-                        mimeType.contains("alac", ignoreCase = true) -> "ALAC"
-                        mimeType.contains("wav", ignoreCase = true) -> "WAV"
-                        mimeType.contains("mp3", ignoreCase = true) -> "MP3"
-                        mimeType.contains("aac", ignoreCase = true) || mimeType.contains("m4a", ignoreCase = true) -> "AAC"
-                        mimeType.contains("ogg", ignoreCase = true) -> "OGG"
+                        mimeType.contains("flac", ignoreCase = true) || ext == "FLAC" -> "FLAC"
+                        mimeType.contains("alac", ignoreCase = true) || ext == "ALAC" -> "ALAC"
+                        mimeType.contains("wav", ignoreCase = true) || ext == "WAV" -> "WAV"
+                        mimeType.contains("mp3", ignoreCase = true) || ext == "MP3" -> "MP3"
+                        mimeType.contains("aac", ignoreCase = true) || mimeType.contains("m4a", ignoreCase = true) || ext == "M4A" || ext == "AAC" -> "AAC LC"
+                        mimeType.contains("ogg", ignoreCase = true) || ext == "OGG" -> "OGG"
+                        mimeType.contains("opus", ignoreCase = true) || ext == "OPUS" -> "OPUS"
+                        mimeType.contains("wma", ignoreCase = true) || ext == "WMA" -> "WMA"
+                        mimeType.contains("amr", ignoreCase = true) || ext == "AMR" -> "AMR"
+                        mimeType.contains("ape", ignoreCase = true) || ext == "APE" -> "APE"
+                        mimeType.contains("dsd", ignoreCase = true) || ext == "DSD" || ext == "DSF" || ext == "DFF" -> "DSD"
+                        mimeType.contains("aiff", ignoreCase = true) || ext == "AIFF" || ext == "AIF" -> "AIFF"
                         ext.isNotEmpty() -> ext
                         else -> "UNKNOWN"
                     }
@@ -1092,13 +1119,13 @@ class FullBottomSheet @JvmOverloads constructor(
                     val formattedSampleRate = if (sampleRateKhz % 1.0f == 0f) "${sampleRateKhz.toInt()}" else String.format("%.1f", sampleRateKhz)
                     val bitrateKbps = (bitrateStr?.toFloatOrNull() ?: 320000f) / 1000f
 
-                    val (chipText, subtitleText) = if (isLossless) {
+                    val (dialogTitle, dialogSubtitle) = if (isLossless) {
                         val title = when {
-                            sampleRateKhz >= 176.4f -> "Hi-Res $codec Max"
-                            sampleRateKhz > 48f -> "Hi-Res $codec"
-                            else -> "$codec Lossless"
+                            sampleRateKhz >= 176.4f -> "Hi-Res Lossless" // Max is not typically in Apple Music style, but we can keep it as Hi-Res Lossless Max or just Hi-Res Lossless. 1st image uses "Hi-Res Lossless" for 88.2. So >48 is Hi-Res Lossless.
+                            sampleRateKhz > 48f -> "Hi-Res Lossless"
+                            else -> "Lossless"
                         }
-                        val sub = "$bitDepthInt-bit / $formattedSampleRate kHz"
+                        val sub = "$bitDepthInt-bit / $formattedSampleRate kHz $codec"
                         Pair(title, sub)
                     } else {
                         val title = "${bitrateKbps.toInt()} KBPS $codec"
@@ -1106,9 +1133,12 @@ class FullBottomSheet @JvmOverloads constructor(
                         Pair(title, sub)
                     }
 
+                    val chipText = if (isLossless) dialogTitle else if (codec == "AAC LC") "AAC" else codec
+
                     withContext(Dispatchers.Main) {
-                        currentCodecStr = chipText
-                        currentSubtitleStr = subtitleText
+                        currentChipStr = chipText
+                        currentCodecStr = dialogTitle
+                        currentSubtitleStr = dialogSubtitle
                         isCurrentLossless = isLossless
 
                         bottomSheetQualityText.text = chipText
@@ -1420,6 +1450,15 @@ class FullBottomSheet @JvmOverloads constructor(
             bottomSheetStarButtonPlaylistBackground.setImageResource(
                 targetRes
             )
+            
+            val tintColor = if (isFav) android.graphics.Color.parseColor("#EBFFFFFF") else context.getColor(R.color.contrast_primaryOverlayShadeColor)
+            bottomSheetStarButton.iconTint = android.content.res.ColorStateList.valueOf(tintColor)
+            bottomSheetStarButtonPlaylist.iconTint = android.content.res.ColorStateList.valueOf(tintColor)
+            
+            val bgTintColor = if (isFav) android.graphics.Color.parseColor("#EBFFFFFF") else context.getColor(R.color.contrast_primaryOverlayColor)
+            bottomSheetStarButtonBackground.imageTintList = android.content.res.ColorStateList.valueOf(bgTintColor)
+            bottomSheetStarButtonPlaylistBackground.imageTintList = android.content.res.ColorStateList.valueOf(bgTintColor)
+            
             favouriteLock = false
         }
     }

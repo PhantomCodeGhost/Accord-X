@@ -110,11 +110,21 @@
                         android:textColor="@color/contrast_colorOnSurfaceSecondary"
                         tools:text="Beta 1 · Dessert" />
 
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/check_updates_button"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="18dp"
+                        android:layout_marginTop="16dp"
+                        android:text="@string/check_for_updates"
+                        app:icon="@drawable/ic_refresh" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="18dp"
-                        android:layout_marginTop="10dp"
+                        android:layout_marginTop="16dp"
                         android:layout_marginBottom="18dp"
                         android:text="@string/opensource_info"
                         android:textColor="@color/contrast_colorOnSurface" />

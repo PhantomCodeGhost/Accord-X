@@ -11,8 +11,8 @@
 
     <ImageView
         android:id="@+id/codec_icon"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="68dp"
+        android:layout_height="68dp"
         android:src="@drawable/apple_lossless_seeklogo"
         app:tint="@android:color/white" />
 
@@ -22,18 +22,19 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="Hi-Res Lossless"
-        android:textColor="?android:attr/textColorPrimary"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+        android:textColor="@android:color/white"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif" />
 
     <TextView
         android:id="@+id/codec_subtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="8dp"
         android:text="24-bit/88.2 kHz ALAC"
-        android:textColor="?android:attr/textColorSecondary"
-        android:textSize="14sp" />
+        android:textColor="#A0A0A5"
+        android:textSize="15sp" />
 
 </LinearLayout>

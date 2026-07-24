@@ -54,6 +54,15 @@ class SongOptionsDialog(private val mediaItem: androidx.media3.common.MediaItem)
             creditsDialog.show(parentFragmentManager, CreditsDialog.TAG)
         }
 
+        view.findViewById<View>(R.id.option_create_playlist)?.setOnClickListener {
+            dismiss()
+            // To be implemented
+        }
+
+        view.findViewById<View>(R.id.option_create_new_playlist)?.setOnClickListener {
+            dismiss()
+            // To be implemented
+        }
 
         return view
     }

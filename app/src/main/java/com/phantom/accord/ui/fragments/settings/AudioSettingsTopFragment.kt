@@ -29,4 +29,18 @@ class AudioSettingsTopFragment : BasePreferenceFragment() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.settings_audio, rootKey)
     }
+
+    override fun onPreferenceTreeClick(preference: androidx.preference.Preference): Boolean {
+        if (preference.key == "supported_codecs") {
+            val supportFragmentManager = requireActivity().supportFragmentManager
+            supportFragmentManager
+                .beginTransaction()
+                .addToBackStack(System.currentTimeMillis().toString())
+                .hide(supportFragmentManager.fragments.let { it[it.size - 1] })
+                .add(R.id.container, SupportedCodecsFragment())
+                .commit()
+            return true
+        }
+        return super.onPreferenceTreeClick(preference)
+    }
 }

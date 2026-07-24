@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:layout="@layout/preference_category_md"
+        android:title="Backup &amp; Restore">
+
+        <Preference
+            android:key="import_backup"
+            android:layout="@layout/preference_basic"
+            android:title="Import Backup"
+            android:summary="Import your data from a backup file"
+            android:icon="@drawable/ic_folder"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            android:key="export_backup"
+            android:layout="@layout/preference_basic"
+            android:title="Export Backup"
+            android:summary="Export your data to a backup file"
+            android:icon="@drawable/ic_article"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

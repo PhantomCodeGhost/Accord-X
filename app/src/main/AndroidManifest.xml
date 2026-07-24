@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- Read music files (Android 13 and later) (includes .lrc and thumbnails) -->
     <uses-permission
         android:name="android.permission.READ_MEDIA_AUDIO"
@@ -97,6 +99,16 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/playback_widget_info" />
         </receiver>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+        </provider>
 
     </application>
 
