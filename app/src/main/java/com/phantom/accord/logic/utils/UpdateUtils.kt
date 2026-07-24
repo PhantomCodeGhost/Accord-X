@@ -21,7 +21,7 @@ import java.net.URL
 
 object UpdateUtils {
 
-    private const val GITHUB_API_URL = "https://api.github.com/repos/PhantomFoundation/Accord/releases/latest"
+    private const val GITHUB_API_URL = "https://api.github.com/repos/PhantomCodeGhost/Accord/releases/latest"
 
     fun checkForUpdates(context: Context, showToast: Boolean = false) {
         if (showToast) {
