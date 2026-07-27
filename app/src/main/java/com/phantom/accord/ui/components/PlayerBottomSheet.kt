@@ -176,6 +176,12 @@ class PlayerBottomSheet private constructor(
         }
     }
 
+    fun collapse() {
+        if (standardBottomSheetBehavior?.state == BottomSheetBehavior.STATE_EXPANDED) {
+            standardBottomSheetBehavior?.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
+    }
+
     private val bottomSheetCallback = object : BottomSheetCallback() {
         override fun onStateChanged(
             bottomSheet: View,

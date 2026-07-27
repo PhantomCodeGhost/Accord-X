@@ -48,6 +48,14 @@ class SongOptionsDialog(private val mediaItem: androidx.media3.common.MediaItem)
             sleepTimerDialog.show(parentFragmentManager, SleepTimerDialog.TAG)
         }
 
+        view.findViewById<View>(R.id.option_tag_editor)?.setOnClickListener {
+            dismiss()
+            val activity = activity
+            if (activity is com.phantom.accord.ui.MainActivity) {
+                activity.startFragment(com.phantom.accord.ui.fragments.TagEditorFragment.newInstance(mediaItem))
+            }
+        }
+
         view.findViewById<View>(R.id.option_view_credits)?.setOnClickListener {
             dismiss()
             val creditsDialog = CreditsDialog(mediaItem)

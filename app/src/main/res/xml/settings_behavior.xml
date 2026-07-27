@@ -46,6 +46,15 @@
 
         <SwitchPreferenceCompat
             android:defaultValue="false"
+            android:key="close_on_exit"
+            android:layout="@layout/preference_switch"
+            android:summary="@string/settings_close_on_exit_summary"
+            android:title="@string/settings_close_on_exit"
+            android:widgetLayout="@layout/preference_switch_widget"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
             android:key="autoplay"
             android:layout="@layout/preference_switch"
             android:summary="@string/settings_play_on_launch_summary"

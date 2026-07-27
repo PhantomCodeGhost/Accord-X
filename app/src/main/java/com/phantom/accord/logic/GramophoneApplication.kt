@@ -22,6 +22,7 @@ import android.app.NotificationManager
 import android.content.Intent
 import android.content.SharedPreferences
 import android.media.ThumbnailUtils
+import android.os.Bundle
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import android.os.StrictMode.VmPolicy
@@ -59,6 +60,9 @@ class GramophoneApplication : Application(), SingletonImageLoader.Factory, Threa
     lateinit var prefs: SharedPreferences
         private set
 
+    var createdActivitiesCount = 0
+        private set
+
     init {
         Thread.setDefaultUncaughtExceptionHandler(this)
     }
@@ -66,6 +70,20 @@ class GramophoneApplication : Application(), SingletonImageLoader.Factory, Threa
     @OptIn(UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
+        
+        registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
+            override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: Bundle?) {
+                createdActivitiesCount++
+            }
+            override fun onActivityStarted(activity: android.app.Activity) {}
+            override fun onActivityResumed(activity: android.app.Activity) {}
+            override fun onActivityPaused(activity: android.app.Activity) {}
+            override fun onActivityStopped(activity: android.app.Activity) {}
+            override fun onActivitySaveInstanceState(activity: android.app.Activity, outState: Bundle) {}
+            override fun onActivityDestroyed(activity: android.app.Activity) {
+                createdActivitiesCount--
+            }
+        })
 
         if (BuildConfig.DEBUG) {
             // Use StrictMode to find anti-pattern issues
@@ -108,7 +126,6 @@ class GramophoneApplication : Application(), SingletonImageLoader.Factory, Threa
     override fun newImageLoader(context: PlatformContext): ImageLoader {
         return ImageLoader.Builder(context)
             .diskCache(null)
-            .allowHardware(false)
             .components {
                 if (hasScopedStorageV1()) {
                     add(Fetcher.Factory { data, options, _ ->

@@ -424,6 +424,20 @@ class GramophonePlaybackService : MediaLibraryService(), MediaSessionService.Lis
 
     // When destroying, we should release server side player
     // alongside with the mediaSession.
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        val closeOnExit = androidx.preference.PreferenceManager
+            .getDefaultSharedPreferences(this)
+            .getBoolean("close_on_exit", false)
+        val app = application as? GramophoneApplication
+        val isAppReallyDead = app == null || app.createdActivitiesCount == 0
+        // TEMPORARY: Disable stopSelf to debug if this is causing the app to close when picking an image
+        // if (closeOnExit && isAppReallyDead) {
+        //     mediaSession?.player?.stop()
+        //     stopSelf()
+        // }
+    }
+
     override fun onDestroy() {
         instanceForWidgetAndLyricsOnly = null
         // Important: this must happen before sending stop() as that changes state ENDED -> IDLE

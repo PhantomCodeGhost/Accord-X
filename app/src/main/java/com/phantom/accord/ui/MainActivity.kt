@@ -257,6 +257,7 @@ class MainActivity : AppCompatActivity() {
      * @param frag: Target fragment.
      */
     fun startFragment(frag: Fragment, args: (Bundle.() -> Unit)? = null) {
+        playerBottomSheet.collapse()
         supportFragmentManager
             .beginTransaction()
             .addToBackStack(System.currentTimeMillis().toString())
