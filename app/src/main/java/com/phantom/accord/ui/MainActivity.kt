@@ -196,7 +196,9 @@ class MainActivity : AppCompatActivity() {
                 updateLibrary {
                     playerBottomSheet.fullPlayer.updateFavStatus()
                 }
-            } else reportFullyDrawn() // <-- when recreating activity due to rotation
+            } else {
+                reportFullyDrawn() // <-- when recreating activity due to rotation
+            }
         }
     }
 

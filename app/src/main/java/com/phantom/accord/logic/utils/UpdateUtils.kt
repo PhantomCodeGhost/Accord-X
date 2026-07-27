@@ -24,6 +24,7 @@ object UpdateUtils {
     private const val GITHUB_API_URL = "https://api.github.com/repos/PhantomCodeGhost/Accord/releases/latest"
 
     fun checkForUpdates(context: Context, showToast: Boolean = false) {
+
         if (showToast) {
             Toast.makeText(context, "Checking for updates...", Toast.LENGTH_SHORT).show()
         }
@@ -61,7 +62,7 @@ object UpdateUtils {
 
                     withContext(Dispatchers.Main) {
                         // Very simple version check logic for demonstration
-                        val currentVersion = BuildConfig.VERSION_NAME
+                        val currentVersion = BuildConfig.VERSION_NAME ?: ""
                         val currentVersionClean = currentVersion.replace(Regex("[^0-9.]"), "")
                         val newVersionClean = tagName.replace(Regex("[^0-9.]"), "")
                         

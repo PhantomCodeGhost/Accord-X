@@ -215,6 +215,12 @@ class SongAdapter(
                     true
                 }
 
+                R.id.add_to_playlist -> {
+                    val dialog = com.phantom.accord.ui.fragments.AddToPlaylistDialog(item)
+                    dialog.show(mainActivity.supportFragmentManager, com.phantom.accord.ui.fragments.AddToPlaylistDialog.TAG)
+                    true
+                }
+
                 /*R.id.delete -> {
                     val doDelete: (() -> (() -> Pair<IntentSender?, () -> Boolean>)) -> Unit = { r ->
                         val res = r()()

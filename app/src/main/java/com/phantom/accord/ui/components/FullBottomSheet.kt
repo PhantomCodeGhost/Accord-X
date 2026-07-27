@@ -1147,8 +1147,14 @@ class FullBottomSheet @JvmOverloads constructor(
                         bottomSheetQualityIcon.isVisible = isLossless
                         bottomSheetQualityIconShade.isVisible = isLossless
 
-                        if (!bottomSheetQualityCard.isVisible) {
-                            bottomSheetQualityCard.fadInAnimation(interpolator, VIEW_TRANSIT_DURATION)
+                        if (prefs.getBoolean("show_codec_chip", true)) {
+                            if (!bottomSheetQualityCard.isVisible) {
+                                bottomSheetQualityCard.fadInAnimation(interpolator, VIEW_TRANSIT_DURATION)
+                            }
+                        } else {
+                            if (bottomSheetQualityCard.isVisible) {
+                                bottomSheetQualityCard.fadOutAnimation(interpolator, VIEW_TRANSIT_DURATION)
+                            }
                         }
                     }
                 } else {
@@ -1411,6 +1417,14 @@ class FullBottomSheet @JvmOverloads constructor(
         if (duration != null) {
             updateLyric()
         }
+        updateNextButtonState()
+    }
+
+    private fun updateNextButtonState() {
+        val hasNext = instance?.hasNextMediaItem() == true
+        bottomSheetFullNextButton.isEnabled = hasNext
+        val color = if (hasNext) android.graphics.Color.parseColor("#EBFFFFFF") else android.graphics.Color.parseColor("#66FFFFFF")
+        bottomSheetFullNextButton.iconTint = android.content.res.ColorStateList.valueOf(color)
     }
 
     override fun onTimelineChanged(timeline: Timeline, reason: Int) {
@@ -1419,6 +1433,7 @@ class FullBottomSheet @JvmOverloads constructor(
                 dumpPlaylist()
             )
         }
+        updateNextButtonState()
     }
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
@@ -1429,6 +1444,7 @@ class FullBottomSheet @JvmOverloads constructor(
                 dumpPlaylist()
             )
         }
+        updateNextButtonState()
     }
 
     private fun startQueryFavourite() {
@@ -2774,6 +2790,13 @@ class FullBottomSheet @JvmOverloads constructor(
     }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-        // Do nothing for now
+        if (key == "show_codec_chip") {
+            val show = sharedPreferences?.getBoolean(key, true) == true
+            if (!show && bottomSheetQualityCard.isVisible) {
+                bottomSheetQualityCard.fadOutAnimation(interpolator, VIEW_TRANSIT_DURATION)
+            } else if (show && !bottomSheetQualityCard.isVisible && currentCodecStr.isNotEmpty()) {
+                bottomSheetQualityCard.fadInAnimation(interpolator, VIEW_TRANSIT_DURATION)
+            }
+        }
     }
 }

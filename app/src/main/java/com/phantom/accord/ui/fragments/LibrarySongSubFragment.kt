@@ -42,16 +42,22 @@ class LibrarySongSubFragment : BaseFragment(), Observer<List<PlaylistWithMediaIt
             return null
         }
 
+        val playlistName = arguments?.getString("playlist_name") ?: "favourite"
         val playlist = libraryViewModel.privatePlaylistList.value!!.find {
-            it.playlist.name == "favourite"
-        }!!
+            it.playlist.name == playlistName
+        } ?: return null // Prevent crash if playlist deleted
 
         val filteredAndSortedList = playlist.mediaItems.mapNotNull { id ->
             libraryViewModel.mediaItemList.value!!.find { it.mediaId.toLong() == id.mediaItemId }
         }
 
         // Show title text.
-        collapsingToolbarLayout.title = ContextCompat.getString(requireContext(), R.string.category_songs)
+        val titleText = if (playlistName == "favourite") {
+            ContextCompat.getString(requireContext(), R.string.category_songs)
+        } else {
+            playlistName
+        }
+        collapsingToolbarLayout.title = titleText
 
         songAdapter =
             SongAdapter(
@@ -84,8 +90,9 @@ class LibrarySongSubFragment : BaseFragment(), Observer<List<PlaylistWithMediaIt
         val measureTime = measureTimeMillis {
             val mediaItemMap = libraryViewModel.mediaItemList.value?.associateBy { it.mediaId.toLong() }
 
-            val favouritePlaylist = value.find { it1 -> it1.playlist.name == "favourite" }
-            favouritePlaylist?.let { it1 ->
+            val playlistName = arguments?.getString("playlist_name") ?: "favourite"
+            val targetPlaylist = value.find { it1 -> it1.playlist.name == playlistName }
+            targetPlaylist?.let { it1 ->
                 mediaItemMap?.let { map ->
                     val updatedList = it1.mediaItems.mapNotNull { mediaItem ->
                         map[mediaItem.mediaItemId]

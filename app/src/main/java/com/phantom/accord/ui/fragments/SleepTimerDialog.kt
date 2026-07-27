@@ -68,10 +68,10 @@ class SleepTimerDialog : BottomSheetDialogFragment() {
                     
                     val root = activity?.findViewById<View>(android.R.id.content) ?: view
                     val snackbar = Snackbar.make(root, message, Snackbar.LENGTH_SHORT)
-                    snackbar.view.setBackgroundColor(android.graphics.Color.parseColor("#000000"))
-                    val tv = snackbar.view.findViewById<TextView>(com.google.android.material.R.id.snackbar_text)
-                    tv.setTextColor(android.graphics.Color.WHITE)
+                    snackbar.setBackgroundTint(android.graphics.Color.BLACK)
+                    snackbar.setTextColor(android.graphics.Color.WHITE)
                     
+                    val tv = snackbar.view.findViewById<TextView>(com.google.android.material.R.id.snackbar_text)
                     val checkDrawable = androidx.core.content.ContextCompat.getDrawable(requireContext(), R.drawable.ic_check)?.mutate()
                     checkDrawable?.setTint(android.graphics.Color.WHITE)
                     tv.setCompoundDrawablesWithIntrinsicBounds(checkDrawable, null, null, null)

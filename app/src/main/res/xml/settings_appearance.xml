@@ -32,6 +32,14 @@
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="show_codec_chip"
+            android:layout="@layout/preference_switch"
+            android:summary="Show the audio codec chip on the player screen"
+            android:title="Show Codec Chip"
+            app:iconSpaceReserved="false" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>

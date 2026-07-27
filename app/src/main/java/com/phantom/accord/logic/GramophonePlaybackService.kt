@@ -166,6 +166,43 @@ class GramophonePlaybackService : MediaLibraryService(), MediaSessionService.Lis
             )
         }
 
+    private val crossfadeRunnable = object : Runnable {
+        override fun run() {
+            if (controller == null) return
+            
+            val enableCrossfade = prefs.getBoolean("enable_crossfade", false)
+            val player = controller ?: return
+            
+            if (!enableCrossfade) {
+                if (player.volume != 1.0f) {
+                    player.volume = 1.0f
+                }
+            } else {
+                if (player.isPlaying) {
+                    val duration = player.duration
+                    val position = player.currentPosition
+                    val crossfadeMs = prefs.getInt("crossfade_duration", 5) * 1000L
+    
+                    if (duration != C.TIME_UNSET && position > 0) {
+                        val remaining = duration - position
+                        if (remaining < crossfadeMs) {
+                            // Fading out
+                            player.volume = (remaining.toFloat() / crossfadeMs).coerceIn(0f, 1f)
+                        } else if (position < crossfadeMs) {
+                            // Fading in
+                            player.volume = (position.toFloat() / crossfadeMs).coerceIn(0f, 1f)
+                        } else {
+                            if (player.volume != 1.0f) player.volume = 1.0f
+                        }
+                    } else {
+                        if (player.volume != 1.0f) player.volume = 1.0f
+                    }
+                }
+            }
+            handler.postDelayed(this, 100)
+        }
+    }
+
     private val headSetReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action.equals(AudioManager.ACTION_AUDIO_BECOMING_NOISY)) {
@@ -367,6 +404,7 @@ class GramophonePlaybackService : MediaLibraryService(), MediaSessionService.Lis
             headSetReceiver,
             IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
         )
+        handler.post(crossfadeRunnable)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -399,6 +437,7 @@ class GramophonePlaybackService : MediaLibraryService(), MediaSessionService.Lis
         mediaSession = null
         lyrics = null
         unregisterReceiver(headSetReceiver)
+        handler.removeCallbacks(crossfadeRunnable)
         super.onDestroy()
     }
 

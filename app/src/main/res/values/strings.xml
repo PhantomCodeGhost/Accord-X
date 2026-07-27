@@ -234,4 +234,9 @@
     <string name="lib4_desc" translatable="false">https://github.com/zhanghai/AndroidFastScroll</string>
     <string name="blur_lyrics">Blur lyrics</string>
     <string name="blur_lyrics_summary">Enable blur with lyrics (May impact performance)</string>
+    <string name="add_to_playlist">Add to playlist</string>
+    <string name="preference_category_crossfade">Crossfade</string>
+    <string name="settings_enable_crossfade">Enable Audio Crossfade</string>
+    <string name="settings_enable_crossfade_summary">Smoothly fade out at the end of tracks and fade in at the start</string>
+    <string name="settings_crossfade_duration">Crossfade Duration (seconds)</string>
 </resources>

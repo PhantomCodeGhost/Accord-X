@@ -116,7 +116,7 @@
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_playlist_play"
+                    android:src="@drawable/ic_add"
                     app:tint="@color/contrast_themeColor"/>
                 <TextView
                     android:layout_width="wrap_content"
@@ -127,27 +127,6 @@
                     android:textSize="16sp"/>
             </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/option_create_new_playlist"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp"
-                android:background="?attr/selectableItemBackground">
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_add"
-                    app:tint="@color/contrast_themeColor"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:text="Create New Playlist"
-                    android:textColor="?android:attr/textColorPrimary"
-                    android:textSize="16sp"/>
-            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/option_sleep_timer"

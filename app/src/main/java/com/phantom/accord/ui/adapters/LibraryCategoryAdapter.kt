@@ -73,7 +73,8 @@ class LibraryCategoryAdapter(
                         .replaceFragment(LibrarySongSubFragment())
                 }
                 EntryType.PLAYLIST -> {
-
+                    fragment.findBaseWrapperFragment()!!
+                        .replaceFragment(com.phantom.accord.ui.fragments.LibraryPlaylistSubFragment())
                 }
                 EntryType.ARTIST -> {
 
