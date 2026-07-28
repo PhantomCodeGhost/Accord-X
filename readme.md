@@ -1,8 +1,8 @@
-# Accord
+# Accord X
 
-A local music player for Android with an Apple-inspired design. Supports synced lyrics (LRC/SRT), gapless playback, audio crossfade, and third-party equalizers.
+A local music player for Android with an Apple-inspired design. Supports synced lyrics (LRC/SRT), gapless playback, audio crossfade, home screen widget, and third-party equalizers.
 
-Fork of [Gramophone](https://github.com/PhantomTan/Gramophone) / [AccordLegacy](https://github.com/FoedusProgramme/AccordLegacy) with bug fixes, updated dependencies, and new features.
+Fork of [Accord](https://github.com/PhantomFoundation/Accord) / [Gramophone](https://github.com/PhantomTan/Gramophone) with bug fixes, updated dependencies, and new features.
 
 ## Screenshots
 
@@ -19,13 +19,13 @@ Fork of [Gramophone](https://github.com/PhantomTan/Gramophone) / [AccordLegacy](
 
 ## Installation
 
-Download the latest APK from [GitHub Releases](https://github.com/PhantomCodeGhost/Accord/releases/latest).
+Download the latest APK from [GitHub Releases](https://github.com/PhantomCodeGhost/Accord-X/releases/latest).
 
 ## Building
 
 ```bash
-git clone https://github.com/PhantomCodeGhost/Accord.git
-cd Accord
+git clone https://github.com/PhantomCodeGhost/Accord-X.git
+cd Accord-X
 ./gradlew assembleRelease
 ```
 
@@ -33,11 +33,9 @@ APK will be in `app/build/outputs/apk/release/`.
 
 ## Credits
 
-Based on [Gramophone](https://github.com/PhantomTan/Gramophone) by PhantomTan and [AccordLegacy](https://github.com/FoedusProgramme/AccordLegacy) by FoedusProgramme.
+Based on [Gramophone](https://github.com/PhantomTan/Gramophone) by PhantomTan and [Accord](https://github.com/PhantomFoundation/Accord) by Phantom Foundation.
 
-Original developers: [@PhantomTan](https://github.com/PhantomTan), [@lightsummer233](https://github.com/lightsummer233), [@123Duo3](https://github.com/123Duo3)
-
-Fork maintained by [@PhantomCodeGhost](https://github.com/PhantomCodeGhost)
+Developed and maintained by [@PhantomCodeGhost](https://github.com/PhantomCodeGhost)
 
 ## License
 

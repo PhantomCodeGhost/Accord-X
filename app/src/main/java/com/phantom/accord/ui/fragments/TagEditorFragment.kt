@@ -80,7 +80,7 @@ class TagEditorFragment : BaseFragment(wantsPlayer = true) {
                 }
             } catch (e: Throwable) {
                 Toast.makeText(context, "Error loading image: ${e.message}", Toast.LENGTH_LONG).show()
-                e.printStackTrace()
+                android.util.Log.e("TagEditorFragment", "Error loading image", e)
             }
         }
     }
@@ -226,7 +226,7 @@ class TagEditorFragment : BaseFragment(wantsPlayer = true) {
                     }
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("TagEditorFragment", "Failed to read tags", e)
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "Failed to read tags: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
@@ -352,7 +352,7 @@ class TagEditorFragment : BaseFragment(wantsPlayer = true) {
                     requireActivity().onBackPressedDispatcher.onBackPressed()
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("TagEditorFragment", "Failed to save tags", e)
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "Failed to save: ${e.javaClass.simpleName} - ${e.message}", Toast.LENGTH_LONG).show()
                 }

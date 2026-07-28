@@ -70,7 +70,6 @@ class LibraryAlbumSubFragment : BaseFragment(), Observer<List<PlaylistWithMediaI
         recyclerView.fastScroll(songAdapter, songAdapter.itemHeightHelper)
 
         topAppBar.setNavigationOnClickListener {
-            Log.d("TAG", "ok${requireParentFragment().childFragmentManager.fragments.size}")
             (requireParentFragment() as BaseWrapperFragment).childFragmentManager.popBackStack()
         }
 

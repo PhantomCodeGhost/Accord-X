@@ -70,7 +70,7 @@ android {
             "RELEASE_TYPE",
             "\"$releaseType\""
         )
-        setProperty("archivesBaseName", "Accord-$versionName")
+        setProperty("archivesBaseName", "Accord-X-$versionName")
     }
 
     signingConfigs {

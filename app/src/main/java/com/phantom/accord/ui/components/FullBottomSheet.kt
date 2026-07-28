@@ -1163,7 +1163,7 @@ class FullBottomSheet @JvmOverloads constructor(
                     }
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("FullBottomSheet", "Error getting codec format", e)
                 withContext(Dispatchers.Main) {
                     if (bottomSheetQualityCard.isVisible) bottomSheetQualityCard.fadOutAnimation(interpolator, VIEW_TRANSIT_DURATION)
                 }

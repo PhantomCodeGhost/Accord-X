@@ -21,7 +21,7 @@ import java.net.URL
 
 object UpdateUtils {
 
-    private const val GITHUB_API_URL = "https://api.github.com/repos/PhantomCodeGhost/Accord/releases/latest"
+    private const val GITHUB_API_URL = "https://api.github.com/repos/PhantomCodeGhost/Accord-X/releases/latest"
 
     fun checkForUpdates(context: Context, showToast: Boolean = false) {
 
@@ -82,7 +82,7 @@ object UpdateUtils {
                     }
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("UpdateUtils", "Error checking updates", e)
                 withContext(Dispatchers.Main) {
                     if (showToast) {
                         Toast.makeText(context, "Error checking updates.", Toast.LENGTH_SHORT).show()
@@ -131,7 +131,7 @@ object UpdateUtils {
                                 Toast.makeText(ctxt, "Download failed.", Toast.LENGTH_SHORT).show()
                             }
                         } catch (e: Exception) {
-                            e.printStackTrace()
+                            android.util.Log.e("UpdateUtils", "Failed to start installation", e)
                             Toast.makeText(ctxt, "Failed to start installation.", Toast.LENGTH_SHORT).show()
                         }
                         ctxt.unregisterReceiver(this)
@@ -151,7 +151,7 @@ object UpdateUtils {
                 )
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("UpdateUtils", "Download failed to start", e)
             Toast.makeText(context, "Download failed to start.", Toast.LENGTH_SHORT).show()
         }
     }

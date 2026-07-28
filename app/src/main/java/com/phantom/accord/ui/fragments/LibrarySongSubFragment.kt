@@ -77,7 +77,6 @@ class LibrarySongSubFragment : BaseFragment(), Observer<List<PlaylistWithMediaIt
         recyclerView.fastScroll(songAdapter, songAdapter.itemHeightHelper)
 
         topAppBar.setNavigationOnClickListener {
-            Log.d("TAG", "ok${requireParentFragment().childFragmentManager.fragments.size}")
             (requireParentFragment() as BaseWrapperFragment).childFragmentManager.popBackStack()
         }
 
@@ -102,7 +101,6 @@ class LibrarySongSubFragment : BaseFragment(), Observer<List<PlaylistWithMediaIt
             }
 
         }
-        Log.d("TAG", "MEASURETIME: $measureTime")
     }
 
     override fun onDestroy() {

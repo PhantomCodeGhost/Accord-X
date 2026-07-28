@@ -47,7 +47,7 @@
             android:key="contributors"
             android:layout="@layout/preference_basic"
             android:summary="@string/settings_contributors_detail"
-            android:title="@string/settings_contributors"
+            android:title="Main Developer"
             app:iconSpaceReserved="false" />
 
     </PreferenceCategory>

@@ -92,7 +92,7 @@
     <!-- Not translatable -->
     <string name="app_name">Accord X</string>
     <string name="default_time" translatable="false">0:00</string>
-    <string name="settings_contributors_detail" translatable="false">PhantomTan, 123Duo3, nift4</string>
+    <string name="settings_contributors_detail" translatable="false">\@PhantomCodeGhost</string>
     <string name="upper_folder" translatable="false">..</string>
     <string name="now_playing">Now playing</string>
     <string name="settings_content_based_color_summary">Enable album based color generation</string>
@@ -199,25 +199,10 @@
     <string name="recommendations">Recommendations</string>
     <string name="new_songs">New songs</string>
     <string name="recently_played">Recently played</string>
-    <string name="main_developers">Main developers</string>
-    <string name="phantom" translatable="false">あかね</string>
-    <string name="phantomtan" translatable="false">\@PhantomTan</string>
+    <string name="main_developers">Main Developer</string>
+    <string name="phantom" translatable="false">PhantomCodeGhost</string>
+    <string name="phantomtan" translatable="false">\@PhantomCodeGhost</string>
     <string name="phantom_job" translatable="false">Coder &amp;\nDesigner</string>
-    <string name="duo3" translatable="false">123哆3</string>
-    <string name="duo3_tag" translatable="false">\@123Duo3</string>
-    <string name="duo3_job" translatable="false">Lead\nDesigner</string>
-    <string name="nick" translatable="false">nift4</string>
-    <string name="nick_tag" translatable="false">\@nift4</string>
-    <string name="awainatsu_job" translatable="false">Lead\nDeveloper</string>
-    <string name="side_developers">Side developers</string>
-    <string name="lazar" translatable="false">Lazar</string>
-    <string name="lazar_tag" translatable="false">\@lazrdev</string>
-    <string name="awainatsu_tag" translatable="false">\@awainatsu</string>
-    <string name="awainatsu" translatable="false">淡い夏</string>
-    <string name="luka" translatable="false">Luka Lanczos</string>
-    <string name="luka_tag" translatable="false">\@LukaLanczos</string>
-    <string name="skyd" translatable="false">SkyD666</string>
-    <string name="skyd_tag" translatable="false">\@SkyD666</string>
     <string name="acknowledgements">Acknowledgements</string>
     <string name="ack1" translatable="false">maximiliaan</string>
     <string name="ack1_desc" translatable="false">\@maximiliaan</string>

@@ -209,7 +209,7 @@ class BlendView @JvmOverloads constructor(
             inputStream = contentResolver.openInputStream(uri)
             BitmapFactory.decodeStream(inputStream, null, options)
         } catch (e: FileNotFoundException) {
-            e.printStackTrace()
+            android.util.Log.e("BlendView", "File not found", e)
             null
         } finally {
             inputStream?.close()

@@ -20,7 +20,10 @@ class CreditsDialog(private val mediaItem: androidx.media3.common.MediaItem) : B
         val view = inflater.inflate(R.layout.dialog_credits, container, false)
         
         val creditsText = view.findViewById<TextView>(R.id.credits_text)
+        val fileSizeChipCard = view.findViewById<View>(R.id.file_size_chip_card)
         val fileSizeChip = view.findViewById<TextView>(R.id.file_size_chip)
+        
+        fileSizeChipCard.visibility = View.GONE
         
         val metadata = mediaItem.mediaMetadata
         val sb = java.lang.StringBuilder()
@@ -58,10 +61,10 @@ class CreditsDialog(private val mediaItem: androidx.media3.common.MediaItem) : B
                     val ext = file.extension.uppercase()
                     val sizeStr = String.format("%.1fMB", sizeInMb)
                     fileSizeChip.text = "$sizeStr • $ext"
-                    fileSizeChip.visibility = View.VISIBLE
+                    fileSizeChipCard.visibility = View.VISIBLE
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e(TAG, "Error getting file size", e)
             }
         }
 
