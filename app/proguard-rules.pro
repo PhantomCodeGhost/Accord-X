@@ -30,3 +30,8 @@
     public static int d(...);
     public static int e(...);
 }
+
+# Ignore warnings about missing java.awt and javax.imageio classes referenced by jaudiotagger
+-dontwarn java.awt.**
+-dontwarn javax.imageio.**
+-dontwarn javax.swing.**

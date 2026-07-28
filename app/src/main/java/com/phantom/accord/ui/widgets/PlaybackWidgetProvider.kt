@@ -167,8 +167,19 @@ class PlaybackWidgetProvider : AppWidgetProvider() {
 
                     if (drawable is BitmapDrawable) {
                         val bitmap = drawable.bitmap
-                        val slightlyRounded = getRoundedCornerBitmap(bitmap, 6f)
-                        views.setImageViewBitmap(R.id.widget_album_art, slightlyRounded)
+                        
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                            views.setImageViewBitmap(R.id.widget_album_art, bitmap)
+                            views.setViewOutlinePreferredRadius(
+                                R.id.widget_album_art,
+                                12f,
+                                android.util.TypedValue.COMPLEX_UNIT_DIP
+                            )
+                        } else {
+                            // 12dp approx in pixels (assuming ~3x density for fallback)
+                            val slightlyRounded = getRoundedCornerBitmap(bitmap, 36f)
+                            views.setImageViewBitmap(R.id.widget_album_art, slightlyRounded)
+                        }
 
                         // Create a blurred, saturated version of the artwork as the background (matching BlendView)
                         val bgBitmap = createBlendBackground(context, bitmap)
@@ -194,13 +205,12 @@ class PlaybackWidgetProvider : AppWidgetProvider() {
             val palette = androidx.palette.graphics.Palette.from(source).generate()
             
             val defaultDark = android.graphics.Color.parseColor("#1C1C1E")
-            val dominant = palette.getDominantColor(defaultDark)
-            val muted = palette.getDarkMutedColor(palette.getMutedColor(dominant))
-            val vibrant = palette.getDarkVibrantColor(palette.getVibrantColor(dominant))
+            val color1 = palette.getVibrantColor(palette.getDominantColor(defaultDark))
+            val color2 = palette.getDarkVibrantColor(palette.getMutedColor(defaultDark))
             
-            // Ensure they are dark enough for white text, like Apple Music
-            val color1 = darkenColor(vibrant, 0.45f)
-            val color2 = darkenColor(muted, 0.35f)
+            // Keep colors rich and punchy, only darkening very slightly (0.85) for text contrast
+            val finalColor1 = darkenColor(color1, 0.85f)
+            val finalColor2 = darkenColor(color2, 0.85f)
 
             // Create a perfectly smooth gradient bitmap
             val width = 400
@@ -210,7 +220,7 @@ class PlaybackWidgetProvider : AppWidgetProvider() {
             
             val gradient = android.graphics.LinearGradient(
                 0f, 0f, width.toFloat(), height.toFloat(),
-                intArrayOf(color1, color2),
+                intArrayOf(finalColor1, finalColor2),
                 null,
                 android.graphics.Shader.TileMode.CLAMP
             )

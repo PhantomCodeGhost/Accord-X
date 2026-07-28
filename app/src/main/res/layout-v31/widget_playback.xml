@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Place this file at: res/layout-v31/widget_now_playing.xml
+  (same filename as your normal layout, just in a -v31 qualified folder)
+
+  Difference from the base layout: no @drawable/widget_bg ImageView.
+  On Android 12+, if an app widget's root has no opaque background of its
+  own, the launcher (Pixel Launcher, etc.) draws the system "themed"
+  widget background for you: rounded corners + a translucent, blurred,
+  wallpaper-tinted surface — which is exactly the look of the official
+  Apple Music widget in your screenshot. Your custom @drawable/widget_bg
+  ImageView was painting over that and replacing it with a flat opaque card.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clipChildren="true"
+    android:clipToPadding="true">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <ImageView
+            android:id="@+id/widget_bg_image"
+            android:layout_width="0dp"
+            android:layout_height="0dp" />
+
+        <ImageView
+            android:id="@+id/widget_album_art"
+            android:layout_width="62dp"
+            android:layout_height="62dp"
+            android:layout_alignParentStart="true"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_default_cover" />
+
+        <ImageView
+            android:id="@+id/widget_app_icon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_alignTop="@id/widget_album_art"
+            android:layout_alignParentEnd="true"
+            android:src="@drawable/ic_music_note_small"
+            android:tint="#A6FFFFFF" />
+
+        <LinearLayout
+            android:id="@+id/widget_text_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@id/widget_album_art"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:layout_toStartOf="@id/widget_app_icon"
+            android:layout_toEndOf="@id/widget_album_art"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/widget_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="Not Playing"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-medium" />
+
+            <TextView
+                android:id="@+id/widget_artist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text=""
+                android:textColor="#B3FFFFFF"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/widget_divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@id/widget_text_container"
+            android:layout_marginTop="2dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="6dp"
+            android:layout_toEndOf="@id/widget_album_art"
+            android:background="#1AFFFFFF" />
+
+        <LinearLayout
+            android:id="@+id/widget_controls_row"
+            android:layout_width="match_parent"
+            android:layout_height="24dp"
+            android:layout_alignBottom="@id/widget_album_art"
+            android:layout_toEndOf="@id/widget_album_art"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/widget_btn_prev"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_nowplaying_mp_frewind"
+                android:tint="#FFFFFF" />
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <ImageButton
+                android:id="@+id/widget_btn_play_pause"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_nowplaying_mp_play"
+                android:tint="#FFFFFF" />
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <ImageButton
+                android:id="@+id/widget_btn_next"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_nowplaying_mp_fforward"
+                android:tint="#FFFFFF" />
+        </LinearLayout>
+
+    </RelativeLayout>
+</FrameLayout>
