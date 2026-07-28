@@ -90,7 +90,7 @@
     <string name="opensource_info">Open-sourced under GPL-3.0\nCopyright © 2024 Phantom Foundation</string>
     <string name="playlist_favourite">Favourite</string>
     <!-- Not translatable -->
-    <string name="app_name">Accord</string>
+    <string name="app_name">Accord X</string>
     <string name="default_time" translatable="false">0:00</string>
     <string name="settings_contributors_detail" translatable="false">PhantomTan, 123Duo3, nift4</string>
     <string name="upper_folder" translatable="false">..</string>
