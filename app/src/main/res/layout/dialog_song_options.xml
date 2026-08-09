@@ -149,6 +149,28 @@
                     android:textSize="16sp"/>
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/option_edit_lyrics"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp"
+                android:background="?attr/selectableItemBackground">
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_lyrics"
+                    app:tint="@color/contrast_themeColor"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:text="Edit lyrics"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:textSize="16sp"/>
+            </LinearLayout>
+
 
             <LinearLayout
                 android:id="@+id/option_sleep_timer"
@@ -169,6 +191,34 @@
                     android:layout_marginStart="16dp"
                     android:text="Sleep Timer"
                     android:textColor="?android:attr/textColorPrimary"
+                    android:textSize="16sp"/>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="#1AFFFFFF"
+                android:layout_marginVertical="8dp"/>
+
+            <LinearLayout
+                android:id="@+id/option_delete_song"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp"
+                android:background="?attr/selectableItemBackground">
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_delete"
+                    app:tint="#FF5252"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:text="Delete song"
+                    android:textColor="#FF5252"
                     android:textSize="16sp"/>
             </LinearLayout>
 
