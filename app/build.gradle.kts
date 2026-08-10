@@ -58,8 +58,8 @@ android {
         // Bye bye android 12 - cuz blur
         minSdk = 31
         targetSdk = 36
-        versionCode = 18
-        versionName = "1.0"
+        versionCode = 19
+        versionName = "1.4"
         buildConfigField(
             "String",
             "MY_VERSION_NAME",

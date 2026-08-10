@@ -94,7 +94,7 @@ class GramophoneApplication : Application(), SingletonImageLoader.Factory, Threa
             StrictMode.setVmPolicy(
                 VmPolicy.Builder()
                     .detectAll()
-                    .penaltyLog().penaltyDeath().build())
+                    .penaltyLog().build())
         }
 
         // This is a separate thread to avoid disk read on main thread and improve startup time

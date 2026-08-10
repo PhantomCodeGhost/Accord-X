@@ -107,6 +107,19 @@ class MainActivity : AppCompatActivity() {
         installSplashScreen().setKeepOnScreenCondition { !ready }
         enableEdgeToEdgeProperly()
         super.onCreate(savedInstanceState)
+        // Check for crash log from LyricsEditorFragment
+        try {
+            val crashFile = java.io.File(filesDir, "lyrics_crash.txt")
+            if (crashFile.exists()) {
+                val crashLog = crashFile.readText()
+                crashFile.delete()
+                android.app.AlertDialog.Builder(this)
+                    .setTitle("Lyrics Crash Log")
+                    .setMessage(crashLog)
+                    .setPositiveButton("OK", null)
+                    .show()
+            }
+        } catch (_: Throwable) {}
         autoPlay = intent?.extras?.getBoolean(PLAYBACK_AUTO_START_FOR_FGS, false) == true
         intentSender =
             registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) {

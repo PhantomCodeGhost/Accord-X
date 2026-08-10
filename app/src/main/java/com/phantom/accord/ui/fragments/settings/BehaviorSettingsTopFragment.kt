@@ -61,6 +61,15 @@ class BehaviorSettingsTopFragment : BasePreferenceFragment() {
                 .add(R.id.container, BlacklistSettingsFragment())
                 .commit()
         }
+        if (preference.key == "lyrics_sources_priority") {
+            val supportFragmentManager = requireActivity().supportFragmentManager
+            supportFragmentManager
+                .beginTransaction()
+                .addToBackStack(System.currentTimeMillis().toString())
+                .hide(supportFragmentManager.fragments.let { it[it.size - 1] })
+                .add(R.id.container, LyricsPrioritySettingsFragment())
+                .commit()
+        }
         // Prior to Android 13, this changes a setting which changes MediaStoreUtils behaviour
         // Android 13 and later, this displays state of images permission granted/denied
         if (hasScopedStorageWithMediaTypes() && preference.key == "album_covers") {

@@ -62,6 +62,17 @@ class CreditsDialog(private val mediaItem: androidx.media3.common.MediaItem) : B
                     val sizeStr = String.format("%.1fMB", sizeInMb)
                     fileSizeChip.text = "$sizeStr • $ext"
                     fileSizeChipCard.visibility = View.VISIBLE
+                    
+                    // Try to read ID3 Comment for Lyrics Source
+                    val audioFile = org.jaudiotagger.audio.AudioFileIO.read(file)
+                    val tag = audioFile.tag
+                    val comment = tag?.getFirst(org.jaudiotagger.tag.FieldKey.COMMENT)
+                    if (!comment.isNullOrBlank() && comment.startsWith("Lyrics Source:")) {
+                        val source = comment.replace("Lyrics Source:", "").trim()
+                        appendField("Lyrics Source", source)
+                        // Re-set the HTML text since we added a new field
+                        creditsText.text = android.text.Html.fromHtml(sb.toString(), android.text.Html.FROM_HTML_MODE_COMPACT)
+                    }
                 }
             } catch (e: Exception) {
                 android.util.Log.e(TAG, "Error getting file size", e)

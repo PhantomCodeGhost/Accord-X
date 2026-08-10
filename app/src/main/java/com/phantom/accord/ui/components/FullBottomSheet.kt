@@ -1253,18 +1253,32 @@ class FullBottomSheet @JvmOverloads constructor(
                 }
 
                 GramophonePlaybackService.SERVICE_GET_LYRICS -> {
-                    val parsedLyrics = instance?.getLyrics()
-                    if (bottomSheetFullLyricList != parsedLyrics) {
-                        bottomSheetFullLyricList.clear()
-                        if (!parsedLyrics.isNullOrEmpty()) {
-                            bottomSheetFullLyricList.addAll(parsedLyrics)
-                        }
-                        bottomSheetFullLyricAdapter.notifyDataSetChanged()
-                        resetToDefaultLyricPosition()
-                    }
+                    syncLyricsState()
                 }
             }
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+        }
+    }
+
+    private fun syncLyricsState() {
+        val parsedLyrics = instance?.getLyrics()
+        if (bottomSheetFullLyricList != parsedLyrics) {
+            bottomSheetFullLyricList.clear()
+            if (!parsedLyrics.isNullOrEmpty()) {
+                bottomSheetFullLyricList.addAll(parsedLyrics)
+            }
+            bottomSheetFullLyricAdapter.notifyDataSetChanged()
+            resetToDefaultLyricPosition()
+            
+            val hasLyrics = bottomSheetFullLyricList.isNotEmpty()
+            bottomSheetFullLyricButton.isEnabled = hasLyrics
+            bottomSheetFullLyricButton.alpha = if (hasLyrics) 1.0f else 0.3f
+            bottomSheetFullLyricButtonUnder.isEnabled = hasLyrics
+            bottomSheetFullLyricButtonUnder.alpha = if (hasLyrics) 1.0f else 0.3f
+            
+            if (!hasLyrics && bottomSheetFullLyricButton.isChecked) {
+                bottomSheetFullLyricButton.isChecked = false
+            }
         }
     }
 
@@ -1415,6 +1429,7 @@ class FullBottomSheet @JvmOverloads constructor(
             bottomSheetFullDurationBack.text = bottomSheetFullDuration.text
         }
         if (duration != null) {
+            syncLyricsState()
             updateLyric()
         }
         updateNextButtonState()

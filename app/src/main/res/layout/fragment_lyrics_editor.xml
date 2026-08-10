@@ -25,13 +25,15 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:clipToPadding="false"
-        android:paddingBottom="100dp">
+        android:paddingBottom="220dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingHorizontal="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="16dp">
 
             <!-- Header: Album Art + Song Info -->
             <LinearLayout
@@ -39,11 +41,11 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="24dp">
 
                 <com.google.android.material.card.MaterialCardView
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
                     app:cardCornerRadius="8dp"
                     app:strokeWidth="0dp">
 
@@ -69,7 +71,7 @@
                         android:text="Song Title"
                         android:textColor="?android:attr/textColorPrimary"
                         android:textStyle="bold"
-                        android:textSize="16sp"
+                        android:textSize="20sp"
                         android:maxLines="1"
                         android:ellipsize="end"/>
 
@@ -77,97 +79,146 @@
                         android:id="@+id/lyrics_header_artist"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
                         android:text="Artist"
-                        android:textColor="@color/contrast_themeColor"
-                        android:textSize="14sp"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:textSize="15sp"
                         android:maxLines="1"
                         android:ellipsize="end"/>
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Lyrics EditText -->
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:id="@+id/lyrics_input_layout"
+            <!-- Lyrics Editor Container -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Lyrics">
+                app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/lyrics_input"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textMultiLine"
-                    android:gravity="top|start"
-                    android:minLines="12"
-                    android:scrollbars="vertical"
-                    android:textSize="13sp"
-                    android:fontFamily="monospace"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <androidx.appcompat.widget.AppCompatEditText
+                        android:id="@+id/lyrics_input"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@null"
+                        android:inputType="textMultiLine"
+                        android:gravity="top|start"
+                        android:minLines="18"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:textColorHint="?android:attr/textColorSecondary"
+                        android:hint="No lyrics available. Paste or search to add."
+                        android:textSize="15sp"
+                        android:lineSpacingExtra="6dp"
+                        android:fontFamily="sans-serif"/>
+
+                    <!-- Source Chip -->
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/lyrics_source_chip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:layout_marginTop="16dp"
+                        android:text="Source: Unknown"
+                        android:visibility="gone"
+                        app:chipIcon="@drawable/ic_info"
+                        app:chipIconTint="?attr/colorPrimary"
+                        app:chipStrokeWidth="0dp"
+                        app:chipSurfaceColor="?attr/colorSurfaceVariant"/>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Bottom Action Bar -->
-    <LinearLayout
+    <!-- Floating Bottom Action Bar -->
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_gravity="bottom"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:background="?attr/colorSurfaceContainer"
-        android:elevation="8dp">
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginBottom="150dp"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="4dp"
+        app:strokeWidth="0dp">
 
-        <ImageButton
-            android:id="@+id/btn_search_web"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_search"
-            app:tint="?android:attr/textColorPrimary"
-            android:contentDescription="Search lyrics on web"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="8dp">
 
-        <ImageButton
-            android:id="@+id/btn_download_lyrics"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/baseline_arrow_downward_24"
-            app:tint="?android:attr/textColorPrimary"
-            android:contentDescription="Download lyrics"/>
+            <ImageButton
+                android:id="@+id/btn_search_web"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_search"
+                android:scaleType="centerInside"
+                android:padding="12dp"
+                app:tint="?android:attr/textColorPrimary"
+                android:contentDescription="Search lyrics on web"/>
 
-        <ImageButton
-            android:id="@+id/btn_paste"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_collections_bookmark"
-            app:tint="?android:attr/textColorPrimary"
-            android:contentDescription="Paste from clipboard"/>
+            <ImageButton
+                android:id="@+id/btn_download_lyrics"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/baseline_arrow_downward_24"
+                android:scaleType="centerInside"
+                android:padding="12dp"
+                app:tint="?android:attr/textColorPrimary"
+                android:contentDescription="Download lyrics"/>
 
-        <ImageButton
-            android:id="@+id/btn_select_all"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_bullet_list_24dp"
-            app:tint="?android:attr/textColorPrimary"
-            android:contentDescription="Select all text"/>
+            <ImageButton
+                android:id="@+id/btn_paste"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_paste"
+                android:scaleType="centerInside"
+                android:padding="12dp"
+                app:tint="?android:attr/textColorPrimary"
+                android:contentDescription="Paste from clipboard"/>
 
-        <ImageButton
-            android:id="@+id/btn_save_lyrics"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_save"
-            app:tint="?android:attr/textColorPrimary"
-            android:contentDescription="Save lyrics"/>
+            <ImageButton
+                android:id="@+id/btn_select_all"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_select_all"
+                android:scaleType="centerInside"
+                android:padding="12dp"
+                app:tint="?android:attr/textColorPrimary"
+                android:contentDescription="Select all text"/>
 
-    </LinearLayout>
+            <ImageButton
+                android:id="@+id/btn_save_lyrics"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_save"
+                android:scaleType="centerInside"
+                android:padding="12dp"
+                app:tint="?android:attr/textColorPrimary"
+                android:contentDescription="Save lyrics"/>
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -78,6 +78,18 @@
             android:title="@string/album_covers_compat"
             android:widgetLayout="@layout/preference_switch_widget"
             app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:layout="@layout/preference_category_md"
+        android:title="Lyrics Sources">
+
+        <Preference
+            android:key="lyrics_sources_priority"
+            android:layout="@layout/preference_material"
+            android:title="Lyrics Sources Priority"
+            android:summary="Reorder and toggle lyrics sources"
+            app:iconSpaceReserved="false" />
 
     </PreferenceCategory>
 

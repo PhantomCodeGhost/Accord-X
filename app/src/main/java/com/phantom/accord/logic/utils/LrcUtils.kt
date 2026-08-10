@@ -153,8 +153,9 @@ object LrcUtils {
                         val wordMatches = wordTimeMarksRegex.findAll(lyricLine)
                         val words = lyricLine.split(wordTimeMarksRegex)
                         var lastWordTimestamp = currentTimeStamp
-                        val wordTimestamps = words.mapIndexedNotNull { index, _ ->
-                            wordMatches.elementAtOrNull(index)?.let { match ->
+                        val wordTimestamps = words.mapIndexedNotNull { index, word ->
+                            val match = wordMatches.elementAtOrNull(index)
+                            if (match != null) {
                                 val wordTimestamp =
                                     parseTime(match.groupValues[1] + match.groupValues[2])
                                 Triple(
@@ -164,6 +165,17 @@ object LrcUtils {
                                 ).also {
                                     lastWordTimestamp = wordTimestamp
                                 }
+                            } else {
+                                if (word.isNotEmpty()) {
+                                    val wordTimestamp = lastWordTimestamp + 2000L
+                                    Triple(
+                                        words.take(index + 1).sumOf { it.length },
+                                        lastWordTimestamp,
+                                        wordTimestamp
+                                    ).also {
+                                        lastWordTimestamp = wordTimestamp
+                                    }
+                                } else null
                             }
                         }.toMutableList().apply {
                             // Remove word timestamps whose content is empty
@@ -200,8 +212,9 @@ object LrcUtils {
                         val wordMatches = wordTimeMarksRegex.findAll(lyricLine)
                         val words = lyricLine.split(wordTimeMarksRegex)
                         var lastWordTimestamp = currentTimeStamp
-                        val wordTimestamps = words.mapIndexedNotNull { index, _ ->
-                            wordMatches.elementAtOrNull(index)?.let { match ->
+                        val wordTimestamps = words.mapIndexedNotNull { index, word ->
+                            val match = wordMatches.elementAtOrNull(index)
+                            if (match != null) {
                                 val wordTimestamp =
                                     parseTime(match.groupValues[1] + match.groupValues[2])
                                 Triple(
@@ -211,6 +224,17 @@ object LrcUtils {
                                 ).also {
                                     lastWordTimestamp = wordTimestamp
                                 }
+                            } else {
+                                if (word.isNotEmpty()) {
+                                    val wordTimestamp = lastWordTimestamp + 2000L
+                                    Triple(
+                                        words.take(index + 1).sumOf { it.length },
+                                        lastWordTimestamp,
+                                        wordTimestamp
+                                    ).also {
+                                        lastWordTimestamp = wordTimestamp
+                                    }
+                                } else null
                             }
                         }.toMutableList().apply {
                             // Remove word timestamps whose content is empty
