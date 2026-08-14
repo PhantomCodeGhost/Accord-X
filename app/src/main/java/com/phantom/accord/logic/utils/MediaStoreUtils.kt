@@ -274,13 +274,14 @@ object MediaStoreUtils {
      * @return
      */
     private fun getAllSongs(context: Context): LibraryStoreClass {
-        val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0" +
+        val selection = "( ${MediaStore.Audio.Media.IS_MUSIC} != 0" +
                 listOf(
                     "audio/x-wav",
                     "audio/ogg",
                     "audio/aac",
                     "audio/midi"
-                ).joinToString("") { " or ${MediaStore.Audio.Media.MIME_TYPE} = '$it'" }
+                ).joinToString("") { " or ${MediaStore.Audio.Media.MIME_TYPE} = '$it'" } +
+                " ) AND ${MediaStore.Audio.Media.DATA} NOT LIKE '%.oga'"
         val projection =
             arrayListOf(
                 MediaStore.Audio.Media._ID,

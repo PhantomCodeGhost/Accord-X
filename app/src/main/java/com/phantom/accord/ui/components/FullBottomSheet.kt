@@ -628,7 +628,10 @@ class FullBottomSheet @JvmOverloads constructor(
                 .setView(dialogView)
                 .setBackground(android.graphics.drawable.ColorDrawable(android.graphics.Color.parseColor("#1C1C1E")))
                 .setPositiveButton("OK") { d, _ -> d.dismiss() }
-                .setNegativeButton("Settings") { d, _ -> d.dismiss() }
+                .setNegativeButton("Settings") { d, _ -> 
+                    d.dismiss()
+                    activity.startFragment(com.phantom.accord.ui.fragments.settings.SupportedCodecsFragment())
+                }
                 .create()
                 
             // Set corner radius programmatically to match design

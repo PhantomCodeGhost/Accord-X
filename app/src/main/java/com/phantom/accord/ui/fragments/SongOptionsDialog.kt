@@ -71,10 +71,20 @@ class SongOptionsDialog(private val mediaItem: androidx.media3.common.MediaItem)
             }
         }
 
-        view.findViewById<View>(R.id.option_view_credits)?.setOnClickListener {
+        view.findViewById<View>(R.id.option_details)?.setOnClickListener {
             dismiss()
-            val creditsDialog = CreditsDialog(mediaItem)
-            creditsDialog.show(parentFragmentManager, CreditsDialog.TAG)
+            val activity = activity as? MainActivity
+            if (activity != null) {
+                val position = activity.libraryViewModel.mediaItemList.value?.indexOfFirst {
+                    it.mediaId == mediaItem.mediaId
+                } ?: -1
+                if (position != -1) {
+                    val detailFragment = DetailDialogFragment().apply {
+                        arguments = android.os.Bundle().apply { putInt("Position", position) }
+                    }
+                    activity.startFragment(detailFragment)
+                }
+            }
         }
 
         view.findViewById<View>(R.id.option_create_playlist)?.setOnClickListener {

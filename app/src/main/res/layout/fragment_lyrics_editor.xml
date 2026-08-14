@@ -108,15 +108,18 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="@null"
-                        android:inputType="textMultiLine"
+                        android:inputType="textMultiLine|textNoSuggestions"
                         android:gravity="top|start"
                         android:minLines="18"
                         android:textColor="?android:attr/textColorPrimary"
                         android:textColorHint="?android:attr/textColorSecondary"
                         android:hint="No lyrics available. Paste or search to add."
-                        android:textSize="15sp"
-                        android:lineSpacingExtra="6dp"
-                        android:fontFamily="sans-serif"/>
+                        android:textSize="14sp"
+                        android:lineSpacingExtra="4dp"
+                        android:fontFamily="monospace"
+                        android:scrollbars="vertical"
+                        android:overScrollMode="always"
+                        android:fadeScrollbars="true"/>
 
                     <!-- Source Chip -->
                     <com.google.android.material.chip.Chip

@@ -719,9 +719,29 @@ class GramophonePlaybackService : MediaLibraryService(), MediaSessionService.Lis
                 setSound(null)
             }.build())
         } else {
-            handler.post {
-                throw IllegalStateException("onForegroundServiceStartNotAllowedException shouldn't be called on T+")
-            }
+            android.util.Log.e("PlaybackService", "onForegroundServiceStartNotAllowedException shouldn't be called on T+, but was called.")
+            // Use the same fallback notification to alert the user
+            nm.notify(NOTIFY_ID, NotificationCompat.Builder(this, NOTIFY_CHANNEL_ID).apply {
+                setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                setAutoCancel(true)
+                setCategory(NotificationCompat.CATEGORY_ERROR)
+                setSmallIcon(R.drawable.ic_warning)
+                setContentTitle(this@GramophonePlaybackService.getString(R.string.fgs_failed_title))
+                setContentText(this@GramophonePlaybackService.getString(R.string.fgs_failed_text))
+                setContentIntent(
+                    PendingIntent.getActivity(
+                        this@GramophonePlaybackService,
+                        PENDING_INTENT_NOTIFY_ID,
+                        Intent(this@GramophonePlaybackService, MainActivity::class.java)
+                            .putExtra(MainActivity.PLAYBACK_AUTO_START_FOR_FGS, true),
+                        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+                    )
+                )
+                setVibrate(longArrayOf(0L, 200L))
+                setLights(0, 0, 0)
+                setBadgeIconType(NotificationCompat.BADGE_ICON_NONE)
+                setSound(null)
+            }.build())
         }
     }
 

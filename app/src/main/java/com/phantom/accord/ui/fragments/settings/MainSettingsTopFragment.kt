@@ -92,6 +92,9 @@ class MainSettingsTopFragment : BasePreferenceFragment() {
                     .add(R.id.container, BackupSettingsFragment())
                     .commit()
             }
+            "kill_switch" -> {
+                android.os.Process.killProcess(android.os.Process.myPid())
+            }
         }
         return super.onPreferenceTreeClick(preference)
     }

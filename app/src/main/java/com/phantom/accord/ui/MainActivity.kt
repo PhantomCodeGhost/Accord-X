@@ -80,6 +80,27 @@ class MainActivity : AppCompatActivity() {
     lateinit var playerBottomSheet: PlayerBottomSheet
         private set
     private lateinit var intentSender: ActivityResultLauncher<IntentSenderRequest>
+    
+    private val openDocumentTreeLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        if (uri != null) {
+            val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+            prefs.edit().putString("auto_playlist_folder_uri", uri.toString()).apply()
+            try {
+                contentResolver.takePersistableUriPermission(
+                    uri,
+                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        updateLibrary {
+            playerBottomSheet.fullPlayer.updateFavStatus()
+        }
+    }
+    
     lateinit var bottomNavigationView: BottomNavigationView
     private var intentSenderAction: (() -> Boolean)? = null
 
@@ -205,7 +226,11 @@ class MainActivity : AppCompatActivity() {
             )
         } else {
             // If all permissions are granted, we can update library now.
-            if (libraryViewModel.mediaItemList.value == null) {
+            val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+            val hasFolder = prefs.getString("auto_playlist_folder_uri", null) != null
+            if (!hasFolder) {
+                openDocumentTreeLauncher.launch(null)
+            } else if (libraryViewModel.mediaItemList.value == null) {
                 updateLibrary {
                     playerBottomSheet.fullPlayer.updateFavStatus()
                 }
@@ -246,8 +271,14 @@ class MainActivity : AppCompatActivity() {
             if (grantResults.isNotEmpty() &&
                 grantResults[0] == PackageManager.PERMISSION_GRANTED
             ) {
-                updateLibrary {
-                    playerBottomSheet.fullPlayer.updateFavStatus()
+                val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+                val hasFolder = prefs.getString("auto_playlist_folder_uri", null) != null
+                if (!hasFolder) {
+                    openDocumentTreeLauncher.launch(null)
+                } else {
+                    updateLibrary {
+                        playerBottomSheet.fullPlayer.updateFavStatus()
+                    }
                 }
             } else {
                 reportFullyDrawn()

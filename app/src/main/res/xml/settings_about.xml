@@ -47,8 +47,12 @@
             android:key="contributors"
             android:layout="@layout/preference_basic"
             android:summary="@string/settings_contributors_detail"
-            android:title="Main Developer"
-            app:iconSpaceReserved="false" />
+            android:title="Forked By"
+            app:iconSpaceReserved="false">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://github.com/PhantomCodeGhost/Accord-X" />
+        </Preference>
 
     </PreferenceCategory>
 

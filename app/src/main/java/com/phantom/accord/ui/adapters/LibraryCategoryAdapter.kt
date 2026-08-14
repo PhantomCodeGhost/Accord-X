@@ -43,11 +43,6 @@ class LibraryCategoryAdapter(
             EntryType.ALBUM,
             R.drawable.ic_library_link_icon_album,
             ContextCompat.getString(context, R.string.category_albums)
-        ),
-        LibraryEntry(
-            EntryType.SONG,
-            R.drawable.ic_library_link_icon_songs,
-            ContextCompat.getString(context, R.string.category_songs)
         )
     )
 
@@ -61,7 +56,7 @@ class LibraryCategoryAdapter(
             LayoutInflater.from(parent.context).inflate(R.layout.library_entry, parent, false)
         )
 
-    override fun getItemCount(): Int = 4
+    override fun getItemCount(): Int = libraryEntryList.size
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.textView.text = libraryEntryList[position].entryVal
@@ -77,10 +72,14 @@ class LibraryCategoryAdapter(
                         .replaceFragment(com.phantom.accord.ui.fragments.LibraryPlaylistSubFragment())
                 }
                 EntryType.ARTIST -> {
-
+                    val bundle = android.os.Bundle().apply { putInt("ID", R.id.artists) }
+                    val frag = com.phantom.accord.ui.fragments.LibraryAdapterSubFragment().apply { arguments = bundle }
+                    fragment.findBaseWrapperFragment()!!.replaceFragment(frag)
                 }
                 EntryType.ALBUM -> {
-
+                    val bundle = android.os.Bundle().apply { putInt("ID", R.id.albums) }
+                    val frag = com.phantom.accord.ui.fragments.LibraryAdapterSubFragment().apply { arguments = bundle }
+                    fragment.findBaseWrapperFragment()!!.replaceFragment(frag)
                 }
             }
         }

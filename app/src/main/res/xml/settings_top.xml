@@ -76,4 +76,11 @@
         android:title="Backup &amp; Restore"
         android:summary="Import or export app data" />
 
+    <Preference
+        android:icon="@drawable/ic_close"
+        android:key="kill_switch"
+        android:layout="@layout/preference_basic"
+        android:title="Kill Switch"
+        android:summary="Force close the app" />
+
 </PreferenceScreen>

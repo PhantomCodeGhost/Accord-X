@@ -153,6 +153,17 @@ class LyricsEditorFragment : BaseFragment(wantsPlayer = true) {
                 error(R.drawable.ic_default_cover)
             }
 
+            // Prevent NestedScrollView from intercepting touch events when scrolling inside EditText
+            lyricsInput.setOnTouchListener { v, event ->
+                if (v.hasFocus()) {
+                    v.parent?.requestDisallowInterceptTouchEvent(true)
+                    if (event.action == android.view.MotionEvent.ACTION_UP) {
+                        v.parent?.requestDisallowInterceptTouchEvent(false)
+                    }
+                }
+                false
+            }
+
             // Track unsaved changes
             lyricsInput.addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -191,14 +202,8 @@ class LyricsEditorFragment : BaseFragment(wantsPlayer = true) {
                     return@setOnClickListener
                 }
 
-                com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("Fetch Lyrics")
-                    .setItems(arrayOf("Normal (Plain Text)", "Synced (Line or Word-by-Word)")) { _, which ->
-                        val wantSynced = which == 1
-                        lyricsInput.setText("Fetching...")
-                        fetchLyrics(title, artist, wantSynced)
-                    }
-                    .show()
+                lyricsInput.setText("Fetching...")
+                fetchLyrics(title, artist, true)
             }
 
             // Button 3: Paste
@@ -269,7 +274,18 @@ class LyricsEditorFragment : BaseFragment(wantsPlayer = true) {
 
                 val audioFile = AudioFileIO.read(file)
                 val tag = audioFile.tag
-                val lyrics = tag?.getFirst(FieldKey.LYRICS) ?: ""
+                var lyrics = tag?.getFirst(FieldKey.LYRICS) ?: ""
+                if (lyrics.isBlank()) lyrics = tag?.getFirst("SYNCEDLYRICS") ?: ""
+                if (lyrics.isBlank()) lyrics = tag?.getFirst("UNSYNCEDLYRICS") ?: ""
+                if (lyrics.isBlank()) lyrics = tag?.getFirst("TXXX:LYRICS") ?: ""
+                if (lyrics.isBlank() && tag is org.jaudiotagger.tag.id3.AbstractID3v2Tag) {
+                    try {
+                        val sylt = tag.getFirstField("SYLT")
+                        if (sylt != null) {
+                            lyrics = sylt.toString()
+                        }
+                    } catch (e: Exception) {}
+                }
 
                 withContext(Dispatchers.Main) {
                     originalLyrics = lyrics
@@ -287,278 +303,30 @@ class LyricsEditorFragment : BaseFragment(wantsPlayer = true) {
 
     private fun fetchLyrics(title: String, artist: String, wantSynced: Boolean) {
         val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext())
-        val usePaxsenix = prefs.getBoolean("lyrics_source_paxsenix", true)
-        val useMusixmatch = prefs.getBoolean("lyrics_source_musixmatch", true)
-        val useLrclib = prefs.getBoolean("lyrics_source_lrclib", true)
-        val useNetEase = prefs.getBoolean("lyrics_source_netease", true)
-        val useKugou = prefs.getBoolean("lyrics_source_kugou", true)
-        val useKuwo = prefs.getBoolean("lyrics_source_kuwo", true)
 
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val results = mutableListOf<Triple<String, Int, String>>() // <Text, Type, SourceName>
 
-                // Fetch from Paxsenix
-                if (usePaxsenix) {
-                    try {
-                        val query = URLEncoder.encode("$title $artist", "UTF-8")
-                        val searchUrl = URL("https://lyrics.paxsenix.org/apple-music/search?q=$query")
-                        val searchConn = searchUrl.openConnection() as HttpURLConnection
-                        searchConn.requestMethod = "GET"
-                        searchConn.setRequestProperty("User-Agent", "Accord-X-AndroidApp/1.0")
-                        searchConn.connectTimeout = 8000
-                        searchConn.readTimeout = 8000
-                        if (searchConn.responseCode == HttpURLConnection.HTTP_OK) {
-                            val searchResponse = searchConn.inputStream.bufferedReader().use { it.readText() }
-                            val trackId = parseAppleMusicTrackId(searchResponse)
-                            if (trackId != null) {
-                                val lyricsUrl = URL("https://lyrics.paxsenix.org/apple-music/lyrics?id=$trackId")
-                                val lyricsConn = lyricsUrl.openConnection() as HttpURLConnection
-                                lyricsConn.requestMethod = "GET"
-                                lyricsConn.setRequestProperty("User-Agent", "Accord-X-AndroidApp/1.0")
-                                lyricsConn.connectTimeout = 8000
-                                lyricsConn.readTimeout = 8000
-                                if (lyricsConn.responseCode == HttpURLConnection.HTTP_OK) {
-                                    val lyricsResponse = lyricsConn.inputStream.bufferedReader().use { it.readText() }
-                                    val parsed = extractLyricsFromPaxsenix(lyricsResponse)
-                                    if (parsed != null) {
-                                        results.add(Triple(parsed.first, parsed.second, "Paxsenix (Apple Music)"))
-                                    }
-                                }
-                                lyricsConn.disconnect()
-                            }
-                        }
-                        searchConn.disconnect()
-                    } catch (e: Exception) {
-                        android.util.Log.e("LyricsEditorFragment", "Paxsenix fetch fail", e)
-                    }
-                }
-
-                // Fetch from Musixmatch
-                if (useMusixmatch) {
-                    try {
-                        var mxmToken = prefs.getString("musixmatch_token", null)
-                        if (mxmToken == null) {
-                            val tokenUrl = URL("https://apic-desktop.musixmatch.com/ws/1.1/token.get?app_id=web-desktop-app-v1.0")
-                            val tokenConn = tokenUrl.openConnection() as HttpURLConnection
-                            tokenConn.requestMethod = "GET"
-                            tokenConn.setRequestProperty("User-Agent", "Mozilla/5.0")
-                            tokenConn.connectTimeout = 8000
-                            tokenConn.readTimeout = 8000
-                            if (tokenConn.responseCode == HttpURLConnection.HTTP_OK) {
-                                val tokenResponse = tokenConn.inputStream.bufferedReader().use { it.readText() }
-                                val tokenJson = JSONObject(tokenResponse)
-                                mxmToken = tokenJson.optJSONObject("message")?.optJSONObject("body")?.optString("user_token")
-                                if (mxmToken != null) {
-                                    prefs.edit().putString("musixmatch_token", mxmToken).apply()
-                                }
-                            }
-                            tokenConn.disconnect()
-                        }
-
-                        if (mxmToken != null) {
-                            val encTitle = URLEncoder.encode(title, "UTF-8")
-                            val encArtist = URLEncoder.encode(artist, "UTF-8")
-                            val urlStr = "https://apic-desktop.musixmatch.com/ws/1.1/macro.subtitles.get?format=json&namespace=lyrics_richsynced&q_track=$encTitle&q_artist=$encArtist&user_token=$mxmToken&app_id=web-desktop-app-v1.0"
-                            val url = URL(urlStr)
-                            val conn = url.openConnection() as HttpURLConnection
-                            conn.requestMethod = "GET"
-                            conn.setRequestProperty("User-Agent", "Mozilla/5.0")
-                            conn.connectTimeout = 8000
-                            conn.readTimeout = 8000
-                            if (conn.responseCode == HttpURLConnection.HTTP_OK) {
-                                val response = conn.inputStream.bufferedReader().use { it.readText() }
-                                val json = JSONObject(response)
-                                val body = json.optJSONObject("message")?.optJSONObject("body")?.optJSONObject("macro_calls")
-                                
-                                val trackRichsync = body?.optJSONObject("track.subtitles.get")?.optJSONObject("message")?.optJSONObject("body")?.optJSONArray("subtitle_list")
-                                val trackLyrics = body?.optJSONObject("track.lyrics.get")?.optJSONObject("message")?.optJSONObject("body")?.optJSONObject("lyrics")
-                                
-                                var found = false
-                                if (trackRichsync != null && trackRichsync.length() > 0) {
-                                    val subtitle = trackRichsync.getJSONObject(0).optJSONObject("subtitle")
-                                    val subtitleBody = subtitle?.optString("subtitle_body")
-                                    if (subtitleBody != null && subtitleBody.isNotEmpty()) {
-                                        val mxmParsed = extractLyricsFromMusixmatch(subtitleBody)
-                                        if (mxmParsed != null) {
-                                            results.add(Triple(mxmParsed.first, mxmParsed.second, "Musixmatch"))
-                                            found = true
-                                        }
-                                    }
-                                }
-                                
-                                if (!found && trackLyrics != null) {
-                                    val plainBody = trackLyrics.optString("lyrics_body")
-                                    if (plainBody.isNotEmpty()) {
-                                        val cleaned = plainBody.replace(Regex("\\*\\*\\*\\*\\*\\*\\* This Lyrics is NOT for Commercial use \\*\\*\\*\\*\\*\\*\\*\\n\\(\\d+\\)"), "").trim()
-                                        results.add(Triple(cleaned, 1, "Musixmatch"))
-                                    }
-                                }
-                            }
-                            conn.disconnect()
-                        }
-                    } catch (e: Exception) {
-                        android.util.Log.e("LyricsEditorFragment", "Musixmatch fetch fail", e)
-                    }
-                }
-
                 // Fetch from LRCLIB
-                if (useLrclib) {
-                    try {
-                    val encodedTitle = URLEncoder.encode(title, "UTF-8")
-                    val encodedArtist = URLEncoder.encode(artist, "UTF-8")
-                    val urlStr = "https://lrclib.net/api/get?track_name=$encodedTitle&artist_name=$encodedArtist"
-                    val url = URL(urlStr)
-                    val conn = url.openConnection() as HttpURLConnection
-                    conn.requestMethod = "GET"
-                    conn.setRequestProperty("User-Agent", "Accord-X-AndroidApp/1.0")
-                    conn.connectTimeout = 8000
-                    conn.readTimeout = 8000
-                    if (conn.responseCode == HttpURLConnection.HTTP_OK) {
-                        val response = conn.inputStream.bufferedReader().use { it.readText() }
-                        val json = JSONObject(response)
-                        if (json.has("syncedLyrics") && !json.isNull("syncedLyrics")) {
-                            val synced = json.getString("syncedLyrics")
-                            if (synced.isNotBlank()) results.add(Triple(synced, 2, "LRCLIB"))
-                        }
-                        if (json.has("plainLyrics") && !json.isNull("plainLyrics")) {
-                            val plain = json.getString("plainLyrics")
-                            if (plain.isNotBlank()) results.add(Triple(plain, 1, "LRCLIB"))
-                        }
-                    }
-                    conn.disconnect()
-                    } catch (e: Exception) {
-                        android.util.Log.e("LyricsEditorFragment", "LRCLIB fetch fail", e)
-                    }
-                }
+                // Fetch from LRCLIB
 
-                // Fetch from NetEase
-                if (useNetEase) {
-                    try {
-                        val query = URLEncoder.encode("$title $artist", "UTF-8")
-                        val searchUrl = URL("https://music.163.com/api/search/pc?s=$query&type=1&limit=1")
-                        val searchConn = searchUrl.openConnection() as HttpURLConnection
-                        searchConn.requestMethod = "POST"
-                        searchConn.setRequestProperty("User-Agent", "Mozilla/5.0")
-                        searchConn.setRequestProperty("Referer", "https://music.163.com/")
-                        searchConn.setRequestProperty("Cookie", "os=pc; osver=Microsoft-Windows-10-Professional-build-10586-64bit; appver=2.0.3.131777; channel=netease; __remember_me=true")
-                        searchConn.connectTimeout = 8000
-                        searchConn.readTimeout = 8000
-                        if (searchConn.responseCode == HttpURLConnection.HTTP_OK) {
-                            val response = searchConn.inputStream.bufferedReader().use { it.readText() }
-                            val json = JSONObject(response)
-                            val songs = json.optJSONObject("result")?.optJSONArray("songs")
-                            if (songs != null && songs.length() > 0) {
-                                val trackId = songs.getJSONObject(0).getInt("id")
-                                val lyricsUrl = URL("https://music.163.com/api/song/lyric?id=$trackId&lv=-1&tv=-1")
-                                val lyricsConn = lyricsUrl.openConnection() as HttpURLConnection
-                                lyricsConn.requestMethod = "GET"
-                                lyricsConn.setRequestProperty("User-Agent", "Mozilla/5.0")
-                                lyricsConn.setRequestProperty("Referer", "https://music.163.com/")
-                                lyricsConn.setRequestProperty("Cookie", "os=pc; osver=Microsoft-Windows-10-Professional-build-10586-64bit; appver=2.0.3.131777; channel=netease; __remember_me=true")
-                                lyricsConn.connectTimeout = 8000
-                                lyricsConn.readTimeout = 8000
-                                if (lyricsConn.responseCode == HttpURLConnection.HTTP_OK) {
-                                    val lyricsResponse = lyricsConn.inputStream.bufferedReader().use { it.readText() }
-                                    val lyricsJson = JSONObject(lyricsResponse)
-                                    val lrc = lyricsJson.optJSONObject("lrc")?.optString("lyric", "") ?: ""
-                                    if (lrc.isNotBlank()) {
-                                        val type = if (lrc.contains(Regex("\\[\\d+:\\d{2}(\\.\\d+)?\\]"))) 2 else 1
-                                        results.add(Triple(lrc, type, "NetEase"))
-                                    }
-                                }
-                                lyricsConn.disconnect()
-                            }
-                        }
-                        searchConn.disconnect()
-                    } catch (e: Exception) {
-                        android.util.Log.e("LyricsEditorFragment", "NetEase fetch fail", e)
-                    }
-                }
-                // Fetch from Kugou
-                if (useKugou) {
-                    try {
-                        val query = URLEncoder.encode("$title $artist", "UTF-8")
-                        val searchUrl = URL("https://lyrics.kugou.com/search?keyword=$query&duration=0&client=pc&ver=1&man=yes")
-                        val searchConn = searchUrl.openConnection() as HttpURLConnection
-                        searchConn.requestMethod = "GET"
-                        searchConn.connectTimeout = 8000
-                        searchConn.readTimeout = 8000
-                        if (searchConn.responseCode == HttpURLConnection.HTTP_OK) {
-                            val response = searchConn.inputStream.bufferedReader().use { it.readText() }
-                            val json = JSONObject(response)
-                            val candidates = json.optJSONArray("candidates")
-                            if (candidates != null && candidates.length() > 0) {
-                                val first = candidates.getJSONObject(0)
-                                val id = first.optString("id")
-                                val accesskey = first.optString("accesskey")
-                                if (id.isNotEmpty() && accesskey.isNotEmpty()) {
-                                    val dlUrl = URL("https://lyrics.kugou.com/download?id=$id&accesskey=$accesskey&fmt=lrc&charset=utf8&client=pc&ver=1")
-                                    val dlConn = dlUrl.openConnection() as HttpURLConnection
-                                    dlConn.requestMethod = "GET"
-                                    dlConn.connectTimeout = 8000
-                                    dlConn.readTimeout = 8000
-                                    if (dlConn.responseCode == HttpURLConnection.HTTP_OK) {
-                                        val dlResponse = dlConn.inputStream.bufferedReader().use { it.readText() }
-                                        val dlJson = JSONObject(dlResponse)
-                                        val base64Lrc = dlJson.optString("content")
-                                        if (base64Lrc.isNotEmpty()) {
-                                            val decodedBytes = android.util.Base64.decode(base64Lrc, android.util.Base64.DEFAULT)
-                                            val lrc = String(decodedBytes, Charsets.UTF_8)
-                                            if (lrc.isNotBlank()) {
-                                                val type = if (lrc.contains(Regex("\\[\\d+:\\d{2}(\\.\\d+)?\\]"))) 2 else 1
-                                                results.add(Triple(lrc, type, "Kugou"))
-                                            }
-                                        }
-                                    }
-                                    dlConn.disconnect()
-                                }
-                            }
-                        }
-                        searchConn.disconnect()
-                    } catch (e: Exception) {
-                        android.util.Log.e("LyricsEditorFragment", "Kugou fetch fail", e)
-                    }
-                }
-
-                // Kuwo skipped as per user request
-
-                // 1. Read priority from SharedPreferences
-                val orderStr = prefs.getString("lyrics_source_order", null)
-                val defaultOrder = listOf("lyrics_source_paxsenix", "lyrics_source_lrclib", "lyrics_source_netease", "lyrics_source_kugou", "lyrics_source_kuwo")
-                val priorityOrder = mutableListOf<String>()
-                if (orderStr != null) {
-                    try {
-                        val array = org.json.JSONArray(orderStr)
-                        for (i in 0 until array.length()) priorityOrder.add(array.getString(i))
-                    } catch (e: Exception) {}
-                }
-                if (priorityOrder.isEmpty()) priorityOrder.addAll(defaultOrder)
-                
-                // Helper to get priority score (lower index = higher priority score)
-                fun getPriorityScore(sourceName: String): Int {
-                    val key = when (sourceName) {
-                        "Paxsenix (Apple Music)" -> "lyrics_source_paxsenix"
-                        "Musixmatch" -> "lyrics_source_musixmatch"
-                        "LRCLIB" -> "lyrics_source_lrclib"
-                        "NetEase" -> "lyrics_source_netease"
-                        "Kugou" -> "lyrics_source_kugou"
-                        "Kuwo" -> "lyrics_source_kuwo"
-                        else -> ""
-                    }
-                    val index = priorityOrder.indexOf(key)
-                    return if (index >= 0) priorityOrder.size - index else -1
+                android.util.Log.i("LyricsEditorFragment", "Raw results count: ${results.size}, wantSynced=$wantSynced")
+                for (r in results) {
+                    android.util.Log.i("LyricsEditorFragment", "Result: ${r.third}, type=${r.second}, length=${r.first.length}")
                 }
 
                 // Filter by desired type (wantSynced ? type >= 2 : type == 1)
                 val filtered = if (wantSynced) results.filter { it.second >= 2 } else results.filter { it.second == 1 }
                 
-                // Sort by: 1. type level (3 is better than 2), 2. custom source priority score
-                val bestLyric = filtered.sortedWith(compareBy({ it.second }, { getPriorityScore(it.third) })).lastOrNull()
+                android.util.Log.i("LyricsEditorFragment", "Filtered results count: ${filtered.size}")
+
+                val bestLyric = filtered.sortedBy { it.second }.lastOrNull()
 
                 withContext(Dispatchers.Main) {
                     if (isAdded) {
                         if (bestLyric != null) {
+                            android.util.Log.i("LyricsEditorFragment", "Selected best: ${bestLyric.third}")
                             lyricsInput.setText(bestLyric.first)
                             sourceChip.text = bestLyric.third
                             sourceChip.visibility = View.VISIBLE
@@ -570,6 +338,8 @@ class LyricsEditorFragment : BaseFragment(wantsPlayer = true) {
                             }
                             context?.let { Toast.makeText(it, "Found $typeStr lyrics from ${bestLyric.third}", Toast.LENGTH_SHORT).show() }
                         } else {
+                            android.util.Log.w("LyricsEditorFragment", "No results found from any source")
+                            lyricsInput.setText("")
                             context?.let { Toast.makeText(it, "Lyrics not found", Toast.LENGTH_SHORT).show() }
                         }
                     }
@@ -587,170 +357,7 @@ class LyricsEditorFragment : BaseFragment(wantsPlayer = true) {
         }
     }
 
-    private fun extractLyricsFromMusixmatch(jsonStr: String): Pair<String, Int>? {
-        try {
-            val arr = org.json.JSONArray(jsonStr)
-            val sb = java.lang.StringBuilder()
-            var hasSyllables = false
-            for (i in 0 until arr.length()) {
-                val lineObj = arr.optJSONObject(i) ?: continue
-                val lineStart = lineObj.optDouble("ts", -1.0)
-                val wordsArr = lineObj.optJSONArray("l")
-                
-                if (lineStart >= 0) {
-                    val lineStartMillis = (lineStart * 1000).toLong()
-                    val m = lineStartMillis / 60000
-                    val s = (lineStartMillis % 60000) / 1000
-                    val ms = (lineStartMillis % 1000) / 10
-                    sb.append(String.format("[%02d:%02d.%02d]", m, s, ms))
-                }
-                
-                if (wordsArr != null && wordsArr.length() > 0) {
-                    hasSyllables = true
-                    for (j in 0 until wordsArr.length()) {
-                        val wordObj = wordsArr.optJSONObject(j) ?: continue
-                        val wordText = wordObj.optString("c", "")
-                        val wordStart = wordObj.optDouble("ts", -1.0)
-                        if (wordStart >= 0) {
-                            val wordStartMillis = (wordStart * 1000).toLong()
-                            val wm = wordStartMillis / 60000
-                            val ws = (wordStartMillis % 60000) / 1000
-                            val wms = (wordStartMillis % 1000) / 10
-                            sb.append(String.format("<%02d:%02d.%02d>", wm, ws, wms))
-                        }
-                        sb.append(wordText)
-                    }
-                } else {
-                    val text = lineObj.optJSONObject("x")?.optString("text") ?: lineObj.optString("text", "")
-                    sb.append(text)
-                }
-                sb.append("\n")
-            }
-            if (sb.isNotEmpty()) {
-                return Pair(sb.toString().trim(), if (hasSyllables) 3 else 1)
-            }
-        } catch (e: Exception) {
-            android.util.Log.e("LyricsEditorFragment", "Failed to parse Musixmatch rich synced lyrics", e)
-        }
-        return null
-    }
 
-    private fun extractLyricsFromPaxsenix(json: String): Pair<String, Int>? {
-        try {
-            val obj = JSONObject(json)
-            
-            // Check for word-by-word synced content (original logic)
-            if (obj.has("content")) {
-                val content = obj.get("content")
-                if (content is String && content.isNotEmpty()) {
-                    return Pair(content, 3)
-                }
-            }
-            
-            if (obj.has("lyrics")) {
-                val lyricsArr = obj.optJSONArray("lyrics")
-                if (lyricsArr != null && lyricsArr.length() > 0) {
-                    var hasSyllables = false
-                    for (i in 0 until minOf(5, lyricsArr.length())) {
-                        val line = lyricsArr.getJSONObject(i)
-                        if (line.has("syllables")) {
-                            val syllables = line.optJSONArray("syllables")
-                            if (syllables != null && syllables.length() > 0) {
-                                hasSyllables = true
-                                break
-                            }
-                        }
-                    }
-
-                    if (hasSyllables) {
-                        val sb = StringBuilder()
-                        for (i in 0 until lyricsArr.length()) {
-                            val line = lyricsArr.getJSONObject(i)
-                            val lineTimestamp = line.optString("timestamp", "")
-                            val syllables = line.optJSONArray("syllables")
-
-                            if (lineTimestamp.isNotEmpty()) {
-                                sb.append("[$lineTimestamp]")
-                            }
-
-                            if (syllables != null && syllables.length() > 0) {
-                                for (j in 0 until syllables.length()) {
-                                    val syllable = syllables.getJSONObject(j)
-                                    val sTime = syllable.optString("timestamp", "")
-                                    val sText = syllable.optString("text", "")
-                                    if (sTime.isNotEmpty()) {
-                                        sb.append("<$sTime>")
-                                    }
-                                    sb.append(sText)
-                                }
-                            } else {
-                                sb.append(line.optString("text", ""))
-                            }
-                            sb.append("\n")
-                        }
-                        val result = sb.toString().trim()
-                        if (result.isNotEmpty()) return Pair(result, 3)
-                    } else {
-                        val sb = StringBuilder()
-                        var hasTimestamps = false
-                        for (i in 0 until lyricsArr.length()) {
-                            val line = lyricsArr.getJSONObject(i)
-                            val timestamp = line.optString("timestamp", "")
-                            val text = line.optString("text", "")
-                            if (timestamp.isNotEmpty()) {
-                                sb.append("[$timestamp]$text\n")
-                                hasTimestamps = true
-                            } else {
-                                sb.append("$text\n")
-                            }
-                        }
-                        val result = sb.toString().trim()
-                        if (hasTimestamps && result.isNotEmpty()) return Pair(result, 2)
-                    }
-                }
-            }
-            if (obj.has("syncedLyrics") && !obj.isNull("syncedLyrics")) {
-                val synced = obj.getString("syncedLyrics")
-                if (synced.isNotBlank()) return Pair(synced, 2)
-            }
-            if (obj.has("plainLyrics") && !obj.isNull("plainLyrics")) {
-                val plain = obj.getString("plainLyrics")
-                if (plain.isNotBlank()) return Pair(plain, 1)
-            }
-        } catch (e: Exception) {
-            android.util.Log.e("LyricsEditorFragment", "Extract paxsenix fail", e)
-        }
-        return null
-    }
-
-    private fun parseAppleMusicTrackId(json: String): String? {
-        try {
-            val jsonTrimmed = json.trim()
-            if (jsonTrimmed.startsWith("[")) {
-                val arr = JSONArray(jsonTrimmed)
-                if (arr.length() > 0) {
-                    val firstResult = arr.getJSONObject(0)
-                    if (firstResult.has("id")) {
-                        return firstResult.getString("id")
-                    }
-                }
-            } else if (jsonTrimmed.startsWith("{")) {
-                val obj = JSONObject(jsonTrimmed)
-                if (obj.has("data")) {
-                    val data = obj.get("data")
-                    if (data is JSONArray && data.length() > 0) {
-                        val firstResult = data.getJSONObject(0)
-                        if (firstResult.has("id")) {
-                            return firstResult.getString("id")
-                        }
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            android.util.Log.e("LyricsEditorFragment", "Failed to parse Apple Music search", e)
-        }
-        return null
-    }
 
     private fun saveLyrics() {
         if (absolutePath == null) return
@@ -804,7 +411,7 @@ class LyricsEditorFragment : BaseFragment(wantsPlayer = true) {
                             }
                         }
                     } catch (e: Exception) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && writeUri.scheme == "content" && writeUri.authority?.contains("media") == true) {
                             try {
                                 val pendingIntent = MediaStore.createWriteRequest(requireContext().contentResolver, listOf(writeUri))
                                 val request = androidx.activity.result.IntentSenderRequest.Builder(pendingIntent.intentSender).build()
@@ -812,7 +419,7 @@ class LyricsEditorFragment : BaseFragment(wantsPlayer = true) {
                                     writePermissionLauncher.launch(request)
                                 }
                             } catch (iae: IllegalArgumentException) {
-                                throw Exception("Cannot edit tags of non-MediaStore files directly.", iae)
+                                tempFile.copyTo(originalFile, overwrite = true)
                             }
                             tempFile.delete()
                             return@launch
@@ -824,7 +431,7 @@ class LyricsEditorFragment : BaseFragment(wantsPlayer = true) {
                             tempFile.delete()
                             return@launch
                         } else {
-                            throw e
+                            tempFile.copyTo(originalFile, overwrite = true)
                         }
                     }
                 } else {

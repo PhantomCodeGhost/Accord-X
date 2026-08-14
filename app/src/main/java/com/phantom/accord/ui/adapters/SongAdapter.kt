@@ -126,6 +126,12 @@ class SongAdapter(
                     )
                     true
                 }
+                
+                R.id.add_to_queue -> {
+                    val mediaController = mainActivity.getPlayer()
+                    mediaController?.addMediaItem(item)
+                    true
+                }
 
                 R.id.album -> {
                     CoroutineScope(Dispatchers.Default).launch {

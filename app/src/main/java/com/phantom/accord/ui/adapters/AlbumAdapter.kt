@@ -104,9 +104,14 @@ class AlbumAdapter(
                         mediaController.currentMediaItemIndex + 1,
                         item.songList,
                     )
+                    true
                 }
-
-                /*
+                
+                R.id.add_to_queue -> {
+                    val mediaController = mainActivity.getPlayer()
+                    mediaController?.addMediaItems(item.songList)
+                    true
+                }/*
 				R.id.share -> {
 					val builder = ShareCompat.IntentBuilder(mainActivity)
 					val mimeTypes = mutableSetOf<String>()

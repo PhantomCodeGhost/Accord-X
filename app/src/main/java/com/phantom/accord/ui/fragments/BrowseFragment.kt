@@ -101,4 +101,10 @@ class BrowseFragment : BaseFragment(null) {
 
         return rootView
     }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        val viewPager2 = view?.findViewById<ViewPager2>(R.id.fragment_viewpager)
+        viewPager2?.adapter = null
+    }
 }

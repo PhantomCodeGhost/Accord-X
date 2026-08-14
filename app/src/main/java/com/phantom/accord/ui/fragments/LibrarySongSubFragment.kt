@@ -8,6 +8,8 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.android.material.appbar.MaterialToolbar
@@ -53,7 +55,7 @@ class LibrarySongSubFragment : BaseFragment(), Observer<List<PlaylistWithMediaIt
 
         // Show title text.
         val titleText = if (playlistName == "favourite") {
-            ContextCompat.getString(requireContext(), R.string.category_songs)
+            ContextCompat.getString(requireContext(), R.string.playlist_favourite)
         } else {
             playlistName
         }
@@ -75,6 +77,63 @@ class LibrarySongSubFragment : BaseFragment(), Observer<List<PlaylistWithMediaIt
 
         // Build FastScroller.
         recyclerView.fastScroll(songAdapter, songAdapter.itemHeightHelper)
+
+        val itemTouchHelper = androidx.recyclerview.widget.ItemTouchHelper(object : androidx.recyclerview.widget.ItemTouchHelper.SimpleCallback(0, androidx.recyclerview.widget.ItemTouchHelper.LEFT) {
+            override fun onMove(
+                recyclerView: androidx.recyclerview.widget.RecyclerView,
+                viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder,
+                target: androidx.recyclerview.widget.RecyclerView.ViewHolder
+            ): Boolean = false
+
+            override fun onSwiped(viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.bindingAdapterPosition
+                if (position == androidx.recyclerview.widget.RecyclerView.NO_POSITION) return
+                
+                val songList = songAdapter.getSongList()
+                if (position >= songList.size) return
+                val song = songList[position]
+                val mediaId = song.mediaId.toLongOrNull() ?: return
+                
+                val targetPlaylistName = arguments?.getString("playlist_name") ?: "favourite"
+                val targetPlaylist = libraryViewModel.privatePlaylistList.value?.find { it.playlist.name == targetPlaylistName }
+                if (targetPlaylist != null) {
+                    viewLifecycleOwner.lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                        com.phantom.accord.logic.utils.DatabaseUtils.removeFromPlaylist(
+                            mediaId,
+                            targetPlaylist.playlist.playlistId,
+                            libraryViewModel,
+                            requireContext()
+                        )
+                    }
+                }
+            }
+
+            override fun onChildDraw(
+                c: android.graphics.Canvas,
+                recyclerView: androidx.recyclerview.widget.RecyclerView,
+                viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder,
+                dX: Float,
+                dY: Float,
+                actionState: Int,
+                isCurrentlyActive: Boolean
+            ) {
+                if (actionState == androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    val itemView = viewHolder.itemView
+                    val paint = android.graphics.Paint().apply {
+                        color = android.graphics.Color.RED
+                    }
+                    c.drawRect(
+                        itemView.right + dX,
+                        itemView.top.toFloat(),
+                        itemView.right.toFloat(),
+                        itemView.bottom.toFloat(),
+                        paint
+                    )
+                }
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+            }
+        })
+        itemTouchHelper.attachToRecyclerView(recyclerView)
 
         topAppBar.setNavigationOnClickListener {
             (requireParentFragment() as BaseWrapperFragment).childFragmentManager.popBackStack()

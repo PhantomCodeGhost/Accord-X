@@ -36,6 +36,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import org.jaudiotagger.tag.images.ArtworkFactory
+import com.phantom.accord.logic.getFile
 import androidx.media3.common.MediaItem
 import java.io.File
 
@@ -101,7 +102,7 @@ class TagEditorFragment : BaseFragment(wantsPlayer = true) {
             .setUri(args.getString(ARG_URI))
             .build()
         
-        absolutePath = mediaItem.localConfiguration?.uri?.path
+        absolutePath = mediaItem.getFile()?.path
     }
 
     override fun onCreateView(
@@ -112,7 +113,7 @@ class TagEditorFragment : BaseFragment(wantsPlayer = true) {
 
         val topAppBar = view.findViewById<MaterialToolbar>(R.id.topAppBar)
         topAppBar.setNavigationOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
+            requireActivity().supportFragmentManager.popBackStack()
         }
 
         val appBarLayout = view.findViewById<com.google.android.material.appbar.AppBarLayout>(R.id.appBarLayout)
@@ -349,7 +350,7 @@ class TagEditorFragment : BaseFragment(wantsPlayer = true) {
                     if (activity is MainActivity) {
                         activity.updateLibrary()
                     }
-                    requireActivity().onBackPressedDispatcher.onBackPressed()
+                    requireActivity().supportFragmentManager.popBackStack()
                 }
             } catch (e: Exception) {
                 android.util.Log.e("TagEditorFragment", "Failed to save tags", e)

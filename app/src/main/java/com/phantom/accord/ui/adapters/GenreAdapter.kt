@@ -69,6 +69,12 @@ class GenreAdapter(
                     )
                     true
                 }
+                
+                R.id.add_to_queue -> {
+                    val mediaController = mainActivity.getPlayer()
+                    mediaController?.addMediaItems(item.songList)
+                    true
+                }
                 /*
 				R.id.share -> {
 					val builder = ShareCompat.IntentBuilder(mainActivity)

@@ -64,7 +64,12 @@ class HomepageFragment : BaseFragment(null), Observer<RecommendationFactory.Reco
         nestedScrollView.enableEdgeToEdgePaddingListener()
 
         recyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        recyclerView.adapter = HomepageCarouselAdapter(requireContext())
+        val carouselAdapter = HomepageCarouselAdapter(requireContext(), libraryViewModel)
+        recyclerView.adapter = carouselAdapter
+        
+        libraryViewModel.mediaItemList.observe(viewLifecycleOwner) {
+            carouselAdapter.updateData(libraryViewModel)
+        }
 
         recommendRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         recommendRecyclerView.adapter = recommendAdapter
@@ -78,6 +83,14 @@ class HomepageFragment : BaseFragment(null), Observer<RecommendationFactory.Reco
         topAppBar.applyGeneralMenuItem(this, libraryViewModel)
 
         return rootView
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Clear adapters to prevent memory leaks
+        val recyclerView = view?.findViewById<RecyclerView>(R.id.recyclerview_top)
+        recyclerView?.adapter = null
+        recommendRecyclerView.adapter = null
     }
 
     override fun onDestroy() {

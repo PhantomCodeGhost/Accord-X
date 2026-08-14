@@ -50,6 +50,11 @@ class AboutFragment : BaseElevatedFragment(null) {
             com.phantom.accord.logic.utils.UpdateUtils.checkForUpdates(requireContext(), true)
         }
 
+        rootView.findViewById<View>(R.id.phantom_cv).setOnClickListener {
+            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/PhantomCodeGhost/Accord-X"))
+            startActivity(intent)
+        }
+
         return rootView
     }
 }

@@ -84,7 +84,7 @@
 
 
             <LinearLayout
-                android:id="@+id/option_view_credits"
+                android:id="@+id/option_details"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:orientation="horizontal"
@@ -100,7 +100,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:text="View Credits"
+                    android:text="@string/details"
                     android:textColor="?android:attr/textColorPrimary"
                     android:textSize="16sp"/>
             </LinearLayout>

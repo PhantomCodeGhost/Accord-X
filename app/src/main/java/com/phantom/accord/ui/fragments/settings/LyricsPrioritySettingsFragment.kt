@@ -39,12 +39,7 @@ class LyricsPrioritySettingsFragment : BaseFragment() {
         }
 
         val defaultSources = listOf(
-            LyricsSource("lyrics_source_paxsenix", "Paxsenix (Apple Music)", "Proxy for Apple Music lyrics (supports word-by-word)"),
-            LyricsSource("lyrics_source_musixmatch", "Musixmatch", "Musixmatch Macro API (supports word-by-word)"),
-            LyricsSource("lyrics_source_lrclib", "LRCLIB", "Global open-source lyrics database"),
-            LyricsSource("lyrics_source_netease", "NetEase", "NetEase Cloud Music lyrics API"),
-            LyricsSource("lyrics_source_kugou", "Kugou", "Kugou Music lyrics API"),
-            LyricsSource("lyrics_source_kuwo", "Kuwo", "Kuwo Music lyrics API")
+            LyricsSource("lyrics_source_lrclib", "LRCLIB", "LRCLIB API (word-by-word synced + plain)")
         )
 
         // Load saved order
