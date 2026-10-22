@@ -55,21 +55,6 @@ class SongOptionsDialog(private val mediaItem: androidx.media3.common.MediaItem)
             sleepTimerDialog.show(parentFragmentManager, SleepTimerDialog.TAG)
         }
 
-        view.findViewById<View>(R.id.option_tag_editor)?.setOnClickListener {
-            dismiss()
-            val activity = activity
-            if (activity is MainActivity) {
-                activity.startFragment(TagEditorFragment.newInstance(mediaItem))
-            }
-        }
-
-        view.findViewById<View>(R.id.option_edit_lyrics)?.setOnClickListener {
-            dismiss()
-            val activity = activity
-            if (activity is MainActivity) {
-                activity.startFragment(LyricsEditorFragment.newInstance(mediaItem))
-            }
-        }
 
         view.findViewById<View>(R.id.option_details)?.setOnClickListener {
             dismiss()
@@ -85,12 +70,6 @@ class SongOptionsDialog(private val mediaItem: androidx.media3.common.MediaItem)
                     activity.startFragment(detailFragment)
                 }
             }
-        }
-
-        view.findViewById<View>(R.id.option_create_playlist)?.setOnClickListener {
-            dismiss()
-            val addToPlaylistDialog = AddToPlaylistDialog(mediaItem)
-            addToPlaylistDialog.show(parentFragmentManager, AddToPlaylistDialog.TAG)
         }
 
         view.findViewById<View>(R.id.option_delete_song)?.setOnClickListener {

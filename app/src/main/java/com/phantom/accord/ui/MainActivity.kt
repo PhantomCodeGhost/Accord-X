@@ -41,6 +41,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentManager.FragmentLifecycleCallbacks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.DefaultMediaNotificationProvider
+import androidx.lifecycle.lifecycleScope
 import coil3.imageLoader
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.CoroutineScope
@@ -90,14 +91,24 @@ class MainActivity : AppCompatActivity() {
             try {
                 contentResolver.takePersistableUriPermission(
                     uri,
-                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 )
             } catch (e: Exception) {
-                e.printStackTrace()
+                try {
+                    contentResolver.takePersistableUriPermission(
+                        uri,
+                        android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                } catch (e2: Exception) {
+                    e2.printStackTrace()
+                }
             }
         }
         updateLibrary {
             playerBottomSheet.fullPlayer.updateFavStatus()
+            lifecycleScope.launch(Dispatchers.IO) {
+                com.phantom.accord.logic.utils.PlaylistFileUtils.syncFoldersToPlaylists(this@MainActivity, libraryViewModel)
+            }
         }
     }
     
@@ -128,19 +139,6 @@ class MainActivity : AppCompatActivity() {
         installSplashScreen().setKeepOnScreenCondition { !ready }
         enableEdgeToEdgeProperly()
         super.onCreate(savedInstanceState)
-        // Check for crash log from LyricsEditorFragment
-        try {
-            val crashFile = java.io.File(filesDir, "lyrics_crash.txt")
-            if (crashFile.exists()) {
-                val crashLog = crashFile.readText()
-                crashFile.delete()
-                android.app.AlertDialog.Builder(this)
-                    .setTitle("Lyrics Crash Log")
-                    .setMessage(crashLog)
-                    .setPositiveButton("OK", null)
-                    .show()
-            }
-        } catch (_: Throwable) {}
         autoPlay = intent?.extras?.getBoolean(PLAYBACK_AUTO_START_FOR_FGS, false) == true
         intentSender =
             registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) {
@@ -226,6 +224,9 @@ class MainActivity : AppCompatActivity() {
             )
         } else {
             // If all permissions are granted, we can update library now.
+            if (!com.phantom.accord.logic.utils.PlaylistFileUtils.hasAllFilesAccess()) {
+                com.phantom.accord.logic.utils.PlaylistFileUtils.requestAllFilesAccess(this)
+            }
             val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
             val hasFolder = prefs.getString("auto_playlist_folder_uri", null) != null
             if (!hasFolder) {
@@ -271,6 +272,9 @@ class MainActivity : AppCompatActivity() {
             if (grantResults.isNotEmpty() &&
                 grantResults[0] == PackageManager.PERMISSION_GRANTED
             ) {
+                if (!com.phantom.accord.logic.utils.PlaylistFileUtils.hasAllFilesAccess()) {
+                    com.phantom.accord.logic.utils.PlaylistFileUtils.requestAllFilesAccess(this)
+                }
                 val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
                 val hasFolder = prefs.getString("auto_playlist_folder_uri", null) != null
                 if (!hasFolder) {

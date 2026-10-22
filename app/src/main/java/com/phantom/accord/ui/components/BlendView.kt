@@ -25,6 +25,12 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.doOnLayout
+import coil3.BitmapImage
+import coil3.Image
+import coil3.asDrawable
+import coil3.imageLoader
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -126,9 +132,8 @@ class BlendView @JvmOverloads constructor(
         }
     }
 
-    fun setImageUri(uri: Uri) {
+    fun setBitmap(originalBitmap: Bitmap?) {
         CoroutineScope(Dispatchers.IO).launch {
-            val originalBitmap = getBitmapFromUri(context.contentResolver, uri)
             if (originalBitmap != null && !areBitmapsSame(originalBitmap, previousBitmap)) {
                 enhanceBitmap(originalBitmap).let { enhancedBitmap ->
                     withContext(Dispatchers.Main) {
@@ -143,6 +148,29 @@ class BlendView @JvmOverloads constructor(
                 previousBitmap = null
             }
         }
+    }
+
+    fun setImageUri(uri: Uri?) {
+        if (uri == null) {
+            setBitmap(null)
+            return
+        }
+        val request = ImageRequest.Builder(context)
+            .data(uri)
+            .size(PICTURE_SIZE * 2, PICTURE_SIZE * 2)
+            .allowHardware(false)
+            .target(
+                onSuccess = { image: Image ->
+                    val bitmap = (image as? BitmapImage)?.bitmap
+                        ?: (image.asDrawable(context.resources) as? android.graphics.drawable.BitmapDrawable)?.bitmap
+                    setBitmap(bitmap)
+                },
+                onError = {
+                    setBitmap(null)
+                }
+            )
+            .build()
+        context.imageLoader.enqueue(request)
     }
 
     private fun updateImageViews(bitmap: Bitmap) {
@@ -184,7 +212,6 @@ class BlendView @JvmOverloads constructor(
         isAnimationOngoing = false
     }
 
-
     private val rotationRunnable = object : Runnable {
         override fun run() {
             imageViewTS.rotation = (imageViewTS.rotation + 1.2f) % CYCLE
@@ -194,39 +221,6 @@ class BlendView @JvmOverloads constructor(
                 handler.postDelayed(this, UPDATE_RUNNABLE_INTERVAL)
             }
         }
-    }
-
-    private fun getBitmapFromUri(contentResolver: ContentResolver, uri: Uri): Bitmap? {
-        var inputStream: InputStream? = null
-        return try {
-            inputStream = contentResolver.openInputStream(uri)
-            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            BitmapFactory.decodeStream(inputStream, null, options)
-            inputStream?.close()
-
-            options.inSampleSize = calculateInSampleSize(options)
-            options.inJustDecodeBounds = false
-            inputStream = contentResolver.openInputStream(uri)
-            BitmapFactory.decodeStream(inputStream, null, options)
-        } catch (e: FileNotFoundException) {
-            android.util.Log.e("BlendView", "File not found", e)
-            null
-        } finally {
-            inputStream?.close()
-        }
-    }
-
-    private fun calculateInSampleSize(options: BitmapFactory.Options): Int {
-        val (height, width) = options.run { outHeight to outWidth }
-        var inSampleSize = 1
-        if (height > PICTURE_SIZE || width > PICTURE_SIZE) {
-            val halfHeight = height / 2
-            val halfWidth = width / 2
-            while ((halfHeight / inSampleSize) >= PICTURE_SIZE && (halfWidth / inSampleSize) >= PICTURE_SIZE) {
-                inSampleSize *= 2
-            }
-        }
-        return inSampleSize
     }
 
     private fun enhanceBitmap(bitmap: Bitmap): Bitmap {

@@ -8,6 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.MaterialToolbar
@@ -22,7 +24,7 @@ import java.util.Locale
 class LibraryPlaylistSubFragment : BaseFragment(), Observer<List<PlaylistWithMediaItem>> {
     private val libraryViewModel: LibraryViewModel by activityViewModels()
     private lateinit var adapter: LibraryPlaylistAdapter
-    private lateinit var recyclerView: RecyclerView
+    private lateinit var recyclerView: com.phantom.accord.logic.ui.MyRecyclerView
     private var allPlaylists: List<PlaylistWithMediaItem> = emptyList()
 
     override fun onCreateView(
@@ -37,12 +39,20 @@ class LibraryPlaylistSubFragment : BaseFragment(), Observer<List<PlaylistWithMed
         recyclerView = rootView.findViewById(R.id.playlist_recycler_view)
 
         appBarLayout.enableEdgeToEdgePaddingListener()
+        recyclerView.enableEdgeToEdgePaddingListener()
+        recyclerView.setAppBar(appBarLayout)
+        recyclerView.isNestedScrollingEnabled = true
 
         topAppBar.setNavigationOnClickListener {
             (requireParentFragment() as BaseWrapperFragment).childFragmentManager.popBackStack()
         }
 
         libraryViewModel.privatePlaylistList.observeForever(this)
+
+        viewLifecycleOwner.lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            com.phantom.accord.logic.utils.PlaylistFileUtils.syncFoldersToPlaylists(requireContext().applicationContext, libraryViewModel)
+            com.phantom.accord.logic.utils.DatabaseUtils.getPrivatePlaylist(libraryViewModel, requireContext().applicationContext)
+        }
 
         searchInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -77,6 +87,14 @@ class LibraryPlaylistSubFragment : BaseFragment(), Observer<List<PlaylistWithMed
         if (!isAdded) return
         adapter = LibraryPlaylistAdapter(this, libraryViewModel, list)
         recyclerView.adapter = adapter
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewLifecycleOwner.lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            com.phantom.accord.logic.utils.PlaylistFileUtils.syncFoldersToPlaylists(requireContext().applicationContext, libraryViewModel)
+            com.phantom.accord.logic.utils.DatabaseUtils.getPrivatePlaylist(libraryViewModel, requireContext().applicationContext)
+        }
     }
 
     override fun onDestroyView() {

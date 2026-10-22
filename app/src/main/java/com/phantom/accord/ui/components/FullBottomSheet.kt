@@ -37,6 +37,8 @@ import android.view.animation.PathInterpolator
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.annotation.OptIn
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -69,6 +71,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.TransitionManager
+import coil3.BitmapImage
 import coil3.asDrawable
 import coil3.dispose
 import coil3.imageLoader
@@ -431,6 +434,26 @@ class FullBottomSheet @JvmOverloads constructor(
         bottomSheetFullPlaylistRecyclerView.layoutManager = LinearLayoutManager(context)
         bottomSheetFullPlaylistRecyclerView.adapter = bottomSheetFullPlaylistAdapter
         touchHelper.attachToRecyclerView(bottomSheetFullPlaylistRecyclerView)
+
+        findViewById<View>(R.id.btn_clear_queue)?.setOnClickListener { view ->
+            view.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
+            val player = activity.getPlayer()
+            if (player == null || player.mediaItemCount == 0) {
+                Toast.makeText(context, "Queue is empty", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            MaterialAlertDialogBuilder(activity)
+                .setTitle("Clear Queue")
+                .setMessage("Are you sure you want to clear all songs from the queue?")
+                .setPositiveButton("Clear") { _, _ ->
+                    player.stop()
+                    player.clearMediaItems()
+                    bottomSheetFullPlaylistAdapter.updatePlaylist(Pair(mutableListOf(), mutableListOf()))
+                    Toast.makeText(context, "Queue cleared", Toast.LENGTH_SHORT).show()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
 
         bottomSheetFullPlaylistSubtitleUnder.setLayerType(LAYER_TYPE_HARDWARE, overlayPaint)
         bottomSheetFullSubtitleUnder.setLayerType(LAYER_TYPE_HARDWARE, overlayPaint)
@@ -1347,24 +1370,33 @@ class FullBottomSheet @JvmOverloads constructor(
             val load = { data: Any? ->
                 req(data) {
                     target(onSuccess = {
-                        bottomSheetFullCover.setImageDrawable(it.asDrawable(context.resources))
-                        bottomSheetFullPlaylistCover.setImageDrawable(it.asDrawable(context.resources))
+                        val drawable = it.asDrawable(context.resources)
+                        bottomSheetFullCover.setImageDrawable(drawable)
+                        bottomSheetFullPlaylistCover.setImageDrawable(drawable)
+                        val bitmap = (it as? BitmapImage)?.bitmap
+                            ?: (drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
+                        bottomSheetFullBlendView?.setBitmap(bitmap)
                     }, onError = {
                         bottomSheetFullCover.setImageDrawable(it?.asDrawable(context.resources))
                         bottomSheetFullPlaylistCover.setImageDrawable(it?.asDrawable(context.resources))
+                        bottomSheetFullBlendView?.setBitmap(null)
                     }) // do not react to onStart() which sets placeholder
                 }
             }
-            val file = mediaItem?.getFile()
-            if (hasScopedStorageV1() && (!hasScopedStorageWithMediaTypes()
-                        || context.hasImagePermission()) && file != null
-            ) {
-                req(Pair(file, Size(bottomSheetFullCover.width, bottomSheetFullCover.height))) {
+            val file = mediaItem?.getFile() ?: mediaItem?.let { com.phantom.accord.logic.utils.PlaylistFileUtils.resolveMediaItemFile(context, it) }
+            if (file != null && file.exists()) {
+                val w = if (bottomSheetFullCover.width > 0) bottomSheetFullCover.width else 1024
+                val h = if (bottomSheetFullCover.height > 0) bottomSheetFullCover.height else 1024
+                req(Pair(file, Size(w, h))) {
                     target(onSuccess = {
-                        bottomSheetFullCover.setImageDrawable(it.asDrawable(context.resources))
-                        bottomSheetFullPlaylistCover.setImageDrawable(it.asDrawable(context.resources))
+                        val drawable = it.asDrawable(context.resources)
+                        bottomSheetFullCover.setImageDrawable(drawable)
+                        bottomSheetFullPlaylistCover.setImageDrawable(drawable)
+                        val bitmap = (it as? BitmapImage)?.bitmap
+                            ?: (drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
+                        bottomSheetFullBlendView?.setBitmap(bitmap)
                     }, onError = {
-                        load(mediaItem.mediaMetadata.artworkUri)
+                        load(mediaItem?.mediaMetadata?.artworkUri)
                     })
                 }
             } else {
@@ -1417,6 +1449,7 @@ class FullBottomSheet @JvmOverloads constructor(
             lastDisposable = null
             bottomSheetFullCover.dispose()
             playlistNowPlayingCover?.dispose()
+            bottomSheetFullBlendView?.setBitmap(null)
         }
         val currentPosition = instance?.currentPosition
         val position = CalculationUtils.convertDurationToTimeStamp(currentPosition ?: 0)

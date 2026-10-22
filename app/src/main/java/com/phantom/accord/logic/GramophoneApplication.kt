@@ -21,11 +21,18 @@ import android.app.Application
 import android.app.NotificationManager
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.ContentUris
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.media.ThumbnailUtils
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import android.os.StrictMode.VmPolicy
+import android.provider.MediaStore
 import android.util.Log
 import android.util.Size
 import androidx.annotation.OptIn
@@ -127,22 +134,162 @@ class GramophoneApplication : Application(), SingletonImageLoader.Factory, Threa
         return ImageLoader.Builder(context)
             .diskCache(null)
             .components {
-                if (hasScopedStorageV1()) {
-                    add(Fetcher.Factory { data, options, _ ->
-                        if (data !is Pair<*, *>) return@Factory null
-                        val size = data.second
-                        if (size !is Size?) return@Factory null
+                add(Fetcher.Factory { data, options, _ ->
+                    val targetW = options.size.width.pxOrElse { 1024 }
+                    val targetH = options.size.height.pxOrElse { 1024 }
+
+                    // Case 1: Pair<File, Size?>
+                    if (data is Pair<*, *>) {
                         val file = data.first as? File ?: return@Factory null
+                        val size = data.second as? Size
+                        val w = options.size.width.pxOrElse { size?.width ?: 1024 }
+                        val h = options.size.height.pxOrElse { size?.height ?: 1024 }
                         return@Factory Fetcher {
-                            ImageFetchResult(
-                                ThumbnailUtils.createAudioThumbnail(file, options.size.let {
-                                    Size(it.width.pxOrElse { size?.width ?: 10000 },
-                                        it.height.pxOrElse { size?.height ?: 10000 })
-                                }, null).asImage(), true, DataSource.DISK
-                            )
+                            val bitmap = extractAudioEmbeddedPicture(context, file, null, w, h)
+                            if (bitmap != null) {
+                                ImageFetchResult(bitmap.asImage(), true, DataSource.DISK)
+                            } else {
+                                throw IOException("No album art found")
+                            }
                         }
-                    })
-                }
+                    }
+
+                    // Case 2: File object
+                    if (data is File) {
+                        if (isAudioPath(data.path) && data.exists()) {
+                            return@Factory Fetcher {
+                                val bitmap = extractAudioEmbeddedPicture(context, data, null, targetW, targetH)
+                                if (bitmap != null) {
+                                    ImageFetchResult(bitmap.asImage(), true, DataSource.DISK)
+                                } else {
+                                    throw IOException("No album art found")
+                                }
+                            }
+                        }
+                    }
+
+                    // Case 3: Uri
+                    if (data is Uri) {
+                        val uriStr = data.toString()
+
+                        // 3a. MediaStore song albumart URI
+                        if (uriStr.contains("audio/media") && uriStr.contains("albumart")) {
+                            val idStr = uriStr.substringAfter("audio/media/").substringBefore("/")
+                            val id = idStr.toLongOrNull()
+                            if (id != null) {
+                                return@Factory Fetcher {
+                                    val audioUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+                                    var songFile: File? = null
+                                    try {
+                                        val proj = arrayOf(MediaStore.Audio.Media.DATA)
+                                        context.contentResolver.query(audioUri, proj, null, null, null)?.use { cursor ->
+                                            if (cursor.moveToFirst()) {
+                                                val path = cursor.getString(0)
+                                                if (!path.isNullOrBlank()) {
+                                                    val f = File(path)
+                                                    if (f.exists()) songFile = f
+                                                }
+                                            }
+                                        }
+                                    } catch (_: Throwable) {}
+
+                                    val bitmap = extractAudioEmbeddedPicture(context, songFile, audioUri, targetW, targetH)
+                                    if (bitmap != null) {
+                                        ImageFetchResult(bitmap.asImage(), true, DataSource.DISK)
+                                    } else {
+                                        throw IOException("No album art found")
+                                    }
+                                }
+                            }
+                        }
+
+                        // 3b. MediaStore albumart URI (by album id)
+                        if (uriStr.contains("audio/albumart")) {
+                            val albumId = uriStr.substringAfter("audio/albumart/").substringBefore("/").substringBefore("?").toLongOrNull()
+                            if (albumId != null) {
+                                return@Factory Fetcher {
+                                    var firstSongUri: Uri? = null
+                                    var firstSongFile: File? = null
+                                    try {
+                                        context.contentResolver.query(
+                                            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                                            arrayOf(MediaStore.Audio.Media._ID, MediaStore.Audio.Media.DATA),
+                                            "${MediaStore.Audio.Media.ALBUM_ID} = ?",
+                                            arrayOf(albumId.toString()),
+                                            "${MediaStore.Audio.Media._ID} ASC"
+                                        )?.use { cursor ->
+                                            if (cursor.moveToFirst()) {
+                                                val songId = cursor.getLong(0)
+                                                firstSongUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId)
+                                                val path = cursor.getString(1)
+                                                if (!path.isNullOrBlank()) {
+                                                    val f = File(path)
+                                                    if (f.exists()) firstSongFile = f
+                                                }
+                                            }
+                                        }
+                                    } catch (_: Throwable) {}
+
+                                    val bitmap = extractAudioEmbeddedPicture(context, firstSongFile, firstSongUri, targetW, targetH)
+                                    if (bitmap != null) {
+                                        ImageFetchResult(bitmap.asImage(), true, DataSource.DISK)
+                                    } else {
+                                        throw IOException("No album art found")
+                                    }
+                                }
+                            }
+                        }
+
+                        // 3c. Direct MediaStore audio media URI
+                        if (uriStr.startsWith("content://media/external/audio/media/") && !uriStr.contains("albumart")) {
+                            val id = data.lastPathSegment?.toLongOrNull()
+                            if (id != null) {
+                                return@Factory Fetcher {
+                                    var songFile: File? = null
+                                    try {
+                                        val proj = arrayOf(MediaStore.Audio.Media.DATA)
+                                        context.contentResolver.query(data, proj, null, null, null)?.use { cursor ->
+                                            if (cursor.moveToFirst()) {
+                                                val path = cursor.getString(0)
+                                                if (!path.isNullOrBlank()) {
+                                                    val f = File(path)
+                                                    if (f.exists()) songFile = f
+                                                }
+                                            }
+                                        }
+                                    } catch (_: Throwable) {}
+
+                                    val bitmap = extractAudioEmbeddedPicture(context, songFile, data, targetW, targetH)
+                                    if (bitmap != null) {
+                                        ImageFetchResult(bitmap.asImage(), true, DataSource.DISK)
+                                    } else {
+                                        throw IOException("No album art found")
+                                    }
+                                }
+                            }
+                        }
+
+                        // 3d. Direct file:// audio URI
+                        if (data.scheme == "file") {
+                            val path = data.path
+                            if (path != null && isAudioPath(path)) {
+                                val f = File(path)
+                                if (f.exists()) {
+                                    return@Factory Fetcher {
+                                        val bitmap = extractAudioEmbeddedPicture(context, f, null, targetW, targetH)
+                                        if (bitmap != null) {
+                                            ImageFetchResult(bitmap.asImage(), true, DataSource.DISK)
+                                        } else {
+                                            throw IOException("No album art found")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    null
+                })
             }
             .run {
                 if (!BuildConfig.DEBUG) this else
@@ -179,4 +326,98 @@ class GramophoneApplication : Application(), SingletonImageLoader.Factory, Threa
         startActivity(intent)
         exitProcess(10)
     }
+
+    private fun extractAudioEmbeddedPicture(
+        context: PlatformContext,
+        file: File?,
+        contentUri: Uri?,
+        targetWidth: Int,
+        targetHeight: Int
+    ): Bitmap? {
+        val retriever = MediaMetadataRetriever()
+        var pfd: android.os.ParcelFileDescriptor? = null
+        var fis: java.io.FileInputStream? = null
+        try {
+            var dataSourceSet = false
+
+            // Try 1: Open ParcelFileDescriptor via ContentResolver if contentUri is available
+            if (contentUri != null) {
+                try {
+                    pfd = context.contentResolver.openFileDescriptor(contentUri, "r")
+                    if (pfd != null) {
+                        retriever.setDataSource(pfd.fileDescriptor)
+                        dataSourceSet = true
+                    }
+                } catch (e: Throwable) {
+                    Log.d("GramophoneApp", "contentUri fd failed: ${e.message}")
+                }
+            }
+
+            // Try 2: Open FileInputStream in Java to obtain fd if file is available
+            if (!dataSourceSet && file != null && file.exists()) {
+                try {
+                    fis = java.io.FileInputStream(file)
+                    retriever.setDataSource(fis.fd)
+                    dataSourceSet = true
+                } catch (e: Throwable) {
+                    Log.d("GramophoneApp", "file fis failed: ${e.message}")
+                }
+            }
+
+            // Try 3: Direct contentUri with context
+            if (!dataSourceSet && contentUri != null) {
+                try {
+                    retriever.setDataSource(context, contentUri)
+                    dataSourceSet = true
+                } catch (e: Throwable) {
+                    Log.d("GramophoneApp", "context contentUri failed: ${e.message}")
+                }
+            }
+
+            // Try 4: Direct file path fallback
+            if (!dataSourceSet && file != null && file.exists()) {
+                try {
+                    retriever.setDataSource(file.absolutePath)
+                    dataSourceSet = true
+                } catch (e: Throwable) {
+                    Log.d("GramophoneApp", "absolutePath failed: ${e.message}")
+                }
+            }
+
+            if (!dataSourceSet) return null
+
+            val pic = retriever.embeddedPicture
+            if (pic != null && pic.isNotEmpty()) {
+                val boundsOpts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeByteArray(pic, 0, pic.size, boundsOpts)
+
+                var sampleSize = 1
+                val reqW = if (targetWidth > 0) targetWidth else 1024
+                val reqH = if (targetHeight > 0) targetHeight else 1024
+                while (boundsOpts.outWidth / (sampleSize * 2) >= reqW && boundsOpts.outHeight / (sampleSize * 2) >= reqH) {
+                    sampleSize *= 2
+                }
+
+                val decodeOpts = BitmapFactory.Options().apply {
+                    inSampleSize = sampleSize
+                    inPreferredConfig = Bitmap.Config.ARGB_8888
+                }
+                return BitmapFactory.decodeByteArray(pic, 0, pic.size, decodeOpts)
+            }
+        } catch (e: Throwable) {
+            Log.e("GramophoneApp", "extractAudioEmbeddedPicture failed", e)
+            return null
+        } finally {
+            try { fis?.close() } catch (_: Throwable) {}
+            try { pfd?.close() } catch (_: Throwable) {}
+            try { retriever.release() } catch (_: Throwable) {}
+        }
+        return null
+    }
+
+    private fun isAudioPath(path: String): Boolean {
+        val ext = path.substringAfterLast('.', "").lowercase()
+        return ext in setOf("mp3", "m4a", "flac", "ogg", "wav", "aac", "opus", "wma", "oga")
+    }
 }
+

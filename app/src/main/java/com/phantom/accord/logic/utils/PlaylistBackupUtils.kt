@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Log
 import android.view.View
 import android.widget.TextView
+import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
 import com.phantom.accord.R
 import com.phantom.accord.logic.data.db.AppDatabase
@@ -22,10 +23,10 @@ import java.util.Locale
 object PlaylistBackupUtils {
 
     private const val TAG = "PlaylistBackupUtils"
-    private const val JSON_VERSION = 1
+    private const val JSON_VERSION = 2
 
     /**
-     * Export all playlists to a JSON file at the given URI.
+     * Export app settings and favourite songs to a JSON file at the given URI.
      */
     suspend fun exportPlaylistsToJson(
         context: Context,
@@ -34,41 +35,57 @@ object PlaylistBackupUtils {
         anchorView: View
     ) {
         try {
+            var favouritesCount = 0
             val json = withContext(Dispatchers.IO) {
                 val database = AppDatabase.getInstance(context)
                 val allPlaylists = database.playlistDao().getAllPlaylists()
                 val allSongs = libraryViewModel.mediaItemList.value ?: emptyList()
-
-                // Build a lookup map: mediaId (Long) -> MediaItem
                 val songLookup = allSongs.associateBy { it.mediaId.toLong() }
 
                 val root = JSONObject()
                 root.put("version", JSON_VERSION)
                 root.put("exportDate", SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).format(Date()))
 
-                val playlistsArray = JSONArray()
+                // 1. Export App Settings
+                val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+                val settingsObj = JSONObject()
+                for ((key, value) in prefs.all) {
+                    when (value) {
+                        is Boolean -> settingsObj.put(key, value)
+                        is Int -> settingsObj.put(key, value)
+                        is Long -> settingsObj.put(key, value)
+                        is Float -> settingsObj.put(key, value.toDouble())
+                        is String -> settingsObj.put(key, value)
+                        is Set<*> -> {
+                            val array = JSONArray()
+                            for (item in value) {
+                                array.put(item.toString())
+                            }
+                            settingsObj.put(key, array)
+                        }
+                    }
+                }
+                root.put("settings", settingsObj)
 
-                for (playlistWithItems in allPlaylists) {
-                    val playlistObj = JSONObject()
-                    playlistObj.put("name", playlistWithItems.playlist.name)
-
-                    val songsArray = JSONArray()
-                    for (mediaItem in playlistWithItems.mediaItems) {
+                // 2. Export Favourites Only
+                val favouritesArray = JSONArray()
+                val favouritePlaylist = allPlaylists.find { it.playlist.name == "favourite" }
+                if (favouritePlaylist != null) {
+                    for (mediaItem in favouritePlaylist.mediaItems) {
                         val song = songLookup[mediaItem.mediaItemId]
                         if (song != null) {
                             val songObj = JSONObject()
                             songObj.put("title", song.mediaMetadata.title?.toString() ?: "")
                             songObj.put("artist", song.mediaMetadata.artist?.toString() ?: "")
-                            songsArray.put(songObj)
+                            songObj.put("album", song.mediaMetadata.albumTitle?.toString() ?: "")
+                            favouritesArray.put(songObj)
                         }
                     }
-
-                    playlistObj.put("songs", songsArray)
-                    playlistsArray.put(playlistObj)
                 }
+                root.put("favourites", favouritesArray)
+                favouritesCount = favouritesArray.length()
 
-                root.put("playlists", playlistsArray)
-                root.toString(2) // Pretty print with 2 spaces
+                root.toString(2)
             }
 
             // Write to the file
@@ -78,20 +95,17 @@ object PlaylistBackupUtils {
                 } ?: throw Exception("Could not open output stream")
             }
 
-            // Count playlists exported
-            val playlistCount = JSONObject(json).getJSONArray("playlists").length()
-
             withContext(Dispatchers.Main) {
                 showSnackbar(
                     anchorView,
-                    "Exported $playlistCount playlists successfully",
+                    "Exported settings and $favouritesCount favourite songs successfully",
                     isSuccess = true,
                     context = context
                 )
             }
 
         } catch (e: Exception) {
-            Log.e(TAG, "Error exporting playlists", e)
+            Log.e(TAG, "Error exporting backup", e)
             withContext(Dispatchers.Main) {
                 showSnackbar(
                     anchorView,
@@ -104,8 +118,7 @@ object PlaylistBackupUtils {
     }
 
     /**
-     * Import playlists from a JSON file at the given URI.
-     * Uses title + artist matching (case-insensitive) to find songs on this device.
+     * Import app settings and favourite songs from a JSON file at the given URI.
      */
     suspend fun importPlaylistsFromJson(
         context: Context,
@@ -114,12 +127,11 @@ object PlaylistBackupUtils {
         anchorView: View
     ) {
         try {
-            var playlistCount = 0
-            var totalSongs = 0
-            var missedSongs = 0
+            var restoredSettingsCount = 0
+            var restoredFavouritesCount = 0
+            var totalFavourites = 0
 
             withContext(Dispatchers.IO) {
-                // Read the JSON file
                 val jsonString = context.contentResolver.openInputStream(uri)?.use { inputStream ->
                     inputStream.bufferedReader(Charsets.UTF_8).readText()
                 } ?: throw Exception("Could not open input stream")
@@ -130,67 +142,93 @@ object PlaylistBackupUtils {
                     throw Exception("Invalid backup file format")
                 }
 
+                // 1. Restore Settings
+                if (root.has("settings")) {
+                    val settingsObj = root.getJSONObject("settings")
+                    val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+                    val editor = prefs.edit()
+                    val keys = settingsObj.keys()
+                    while (keys.hasNext()) {
+                        val key = keys.next()
+                        val value = settingsObj.get(key)
+                        when (value) {
+                            is Boolean -> editor.putBoolean(key, value)
+                            is Int -> editor.putInt(key, value)
+                            is Long -> editor.putLong(key, value)
+                            is Double -> editor.putFloat(key, value.toFloat())
+                            is String -> editor.putString(key, value)
+                            is JSONArray -> {
+                                val set = mutableSetOf<String>()
+                                for (k in 0 until value.length()) {
+                                    set.add(value.getString(k))
+                                }
+                                editor.putStringSet(key, set)
+                            }
+                        }
+                        restoredSettingsCount++
+                    }
+                    editor.apply()
+                }
+
+                // 2. Restore Favourites
                 val allSongs = libraryViewModel.mediaItemList.value ?: emptyList()
                 val database = AppDatabase.getInstance(context)
                 val playlistDao = database.playlistDao()
                 val mediaItemDao = database.mediaItemDao()
 
-                // Build a lookup: (lowercase title, lowercase artist) -> mediaId
-                val songMatchMap = mutableMapOf<Pair<String, String>, Long>()
+                // Lookup maps for song matching
+                val titleArtistMap = mutableMapOf<Pair<String, String>, Long>()
+                val titleMap = mutableMapOf<String, Long>()
                 for (song in allSongs) {
                     val title = song.mediaMetadata.title?.toString()?.lowercase(Locale.ROOT) ?: continue
                     val artist = song.mediaMetadata.artist?.toString()?.lowercase(Locale.ROOT) ?: ""
-                    songMatchMap[Pair(title, artist)] = song.mediaId.toLong()
+                    val songId = song.mediaId.toLong()
+                    titleArtistMap[Pair(title, artist)] = songId
+                    titleMap[title] = songId
                 }
 
-                val playlistsArray = root.getJSONArray("playlists")
-                playlistCount = playlistsArray.length()
+                // Ensure favourite playlist exists
+                val allPlaylists = playlistDao.getAllPlaylists()
+                var favPlaylist = allPlaylists.find { it.playlist.name == "favourite" }
+                val favPlaylistId: Long
+                if (favPlaylist == null) {
+                    val newFav = Playlist(0, "favourite", null)
+                    playlistDao.addPlaylist(newFav)
+                    favPlaylistId = 0
+                } else {
+                    favPlaylistId = favPlaylist.playlist.playlistId
+                }
 
-                for (i in 0 until playlistsArray.length()) {
-                    val playlistObj = playlistsArray.getJSONObject(i)
-                    val playlistName = playlistObj.getString("name")
-
-                    // Check if playlist already exists
-                    val existingPlaylists = playlistDao.getAllPlaylists()
-                    val existing = existingPlaylists.find {
-                        it.playlist.name.equals(playlistName, ignoreCase = true)
+                // Parse favourites from "favourites" array, or fallback to "playlists" array in v1
+                val favSongsArray: JSONArray? = if (root.has("favourites")) {
+                    root.getJSONArray("favourites")
+                } else if (root.has("playlists")) {
+                    val playlistsArray = root.getJSONArray("playlists")
+                    var foundFavArray: JSONArray? = null
+                    for (i in 0 until playlistsArray.length()) {
+                        val pObj = playlistsArray.getJSONObject(i)
+                        if (pObj.optString("name").equals("favourite", ignoreCase = true)) {
+                            foundFavArray = pObj.optJSONArray("songs")
+                            break
+                        }
                     }
+                    foundFavArray
+                } else null
 
-                    val playlistId: Long
-                    if (existing != null) {
-                        // Merge into existing playlist
-                        playlistId = existing.playlist.playlistId
-                    } else {
-                        // Create new playlist
-                        val newPlaylist = Playlist(System.currentTimeMillis(), playlistName, null)
-                        playlistDao.addPlaylist(newPlaylist)
-                        // Re-fetch to get the actual ID
-                        val refreshed = playlistDao.getAllPlaylists()
-                        playlistId = refreshed.find {
-                            it.playlist.name.equals(playlistName, ignoreCase = true)
-                        }?.playlist?.playlistId ?: continue
-                    }
-
-                    val songsArray = playlistObj.getJSONArray("songs")
-                    for (j in 0 until songsArray.length()) {
-                        totalSongs++
-                        val songObj = songsArray.getJSONObject(j)
+                if (favSongsArray != null) {
+                    totalFavourites = favSongsArray.length()
+                    for (j in 0 until favSongsArray.length()) {
+                        val songObj = favSongsArray.getJSONObject(j)
                         val title = songObj.optString("title", "").lowercase(Locale.ROOT)
                         val artist = songObj.optString("artist", "").lowercase(Locale.ROOT)
 
-                        if (title.isBlank()) {
-                            missedSongs++
-                            continue
-                        }
+                        if (title.isBlank()) continue
 
-                        val matchedId = songMatchMap[Pair(title, artist)]
+                        val matchedId = titleArtistMap[Pair(title, artist)] ?: titleMap[title]
                         if (matchedId != null) {
-                            // Ensure MediaItem exists in the table
                             mediaItemDao.addMediaItem(MediaItem(matchedId))
-                            // Add to playlist (INSERT OR REPLACE handles duplicates)
-                            mediaItemDao.addMediaItemToPlaylist(playlistId, matchedId)
-                        } else {
-                            missedSongs++
+                            mediaItemDao.addMediaItemToPlaylist(favPlaylistId, matchedId)
+                            restoredFavouritesCount++
                         }
                     }
                 }
@@ -200,21 +238,17 @@ object PlaylistBackupUtils {
             DatabaseUtils.getPrivatePlaylist(libraryViewModel, context)
 
             withContext(Dispatchers.Main) {
-                val message = if (missedSongs > 0) {
-                    "Imported $playlistCount playlists, $missedSongs of $totalSongs songs not found"
-                } else {
-                    "Imported $playlistCount playlists successfully"
-                }
+                val message = "Restored settings ($restoredSettingsCount items) and $restoredFavouritesCount favourite songs"
                 showSnackbar(
                     anchorView,
                     message,
-                    isSuccess = missedSongs == 0,
+                    isSuccess = true,
                     context = context
                 )
             }
 
         } catch (e: Exception) {
-            Log.e(TAG, "Error importing playlists", e)
+            Log.e(TAG, "Error importing backup", e)
             withContext(Dispatchers.Main) {
                 showSnackbar(
                     anchorView,
@@ -226,17 +260,12 @@ object PlaylistBackupUtils {
         }
     }
 
-    /**
-     * Show a styled snackbar matching SleepTimerDialog's design.
-     */
     private fun showSnackbar(view: View, message: String, isSuccess: Boolean, context: Context) {
         val snackbar = Snackbar.make(view, message, Snackbar.LENGTH_LONG)
         snackbar.setBackgroundTint(android.graphics.Color.BLACK)
         snackbar.setTextColor(android.graphics.Color.WHITE)
         
-        // Add checkmark or error icon based on success
         val tv = snackbar.view.findViewById<TextView>(com.google.android.material.R.id.snackbar_text)
-
         val iconRes = if (isSuccess) R.drawable.ic_check else R.drawable.ic_warning
         val drawable = androidx.core.content.ContextCompat.getDrawable(context, iconRes)?.mutate()
         drawable?.setTint(android.graphics.Color.WHITE)

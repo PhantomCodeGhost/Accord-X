@@ -69,7 +69,7 @@ class BackupSettingsTopFragment : BasePreferenceFragment() {
                 val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
                     addCategory(Intent.CATEGORY_OPENABLE)
                     type = "application/json"
-                    putExtra(Intent.EXTRA_TITLE, "accord_playlists_backup.json")
+                    putExtra(Intent.EXTRA_TITLE, "accord_backup.json")
                 }
                 exportLauncher.launch(intent)
             }

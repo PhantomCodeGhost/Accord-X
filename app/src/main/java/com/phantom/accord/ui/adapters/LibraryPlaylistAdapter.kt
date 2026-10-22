@@ -32,17 +32,13 @@ class LibraryPlaylistAdapter(
 ) : RecyclerView.Adapter<LibraryPlaylistAdapter.ViewHolder>() {
 
     companion object {
-        private const val ITEM_NEW_PLAYLIST = 0
-        private const val ITEM_FAVOURITES = 1
-        private const val ITEM_AUTO = 2
-        private const val ITEM_PLAYLIST = 3
+        private const val ITEM_FAVOURITES = 0
+        private const val ITEM_PLAYLIST = 1
     }
 
     override fun getItemViewType(position: Int): Int {
         return when (position) {
-            0 -> ITEM_NEW_PLAYLIST
-            1 -> ITEM_FAVOURITES
-            2 -> ITEM_AUTO
+            0 -> ITEM_FAVOURITES
             else -> ITEM_PLAYLIST
         }
     }
@@ -53,44 +49,12 @@ class LibraryPlaylistAdapter(
     }
 
     override fun getItemCount(): Int {
-        // "New Playlist...", "Favourite Songs", "Auto Playlist", + all custom playlists
-        return 3 + playlists.size
+        // "Favourite Songs" + all custom playlists
+        return 1 + playlists.size
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         when (getItemViewType(position)) {
-            ITEM_NEW_PLAYLIST -> {
-                holder.title.text = "New Playlist..."
-                holder.title.setTextColor(Color.parseColor("#FF0000"))
-                holder.iconImage.setImageResource(R.drawable.ic_add)
-                holder.iconImage.imageTintList = ColorStateList.valueOf(Color.parseColor("#FF0000"))
-                holder.iconCard.setCardBackgroundColor(Color.parseColor("#1AFFFFFF")) // Dark grey
-                
-                holder.iconImage.visibility = View.VISIBLE
-                holder.coverImage.visibility = View.GONE
-                holder.gridCoverFrame.visibility = View.GONE
-                
-                holder.itemView.setOnClickListener {
-                    val ctx = fragment.requireContext()
-                    val input = EditText(ctx)
-                    input.hint = "Playlist Name"
-                    com.google.android.material.dialog.MaterialAlertDialogBuilder(ctx)
-                        .setTitle("New Playlist")
-                        .setView(input)
-                        .setPositiveButton("Create") { _, _ ->
-                            val name = input.text.toString()
-                            if (name.isNotBlank()) {
-                                fragment.lifecycleScope.launch(Dispatchers.IO) {
-                                    val newPlaylist = Playlist(System.currentTimeMillis(), name, null)
-                                    AppDatabase.getInstance(ctx.applicationContext).playlistDao().addPlaylist(newPlaylist)
-                                    DatabaseUtils.getPrivatePlaylist(libraryViewModel, ctx.applicationContext)
-                                }
-                            }
-                        }
-                        .setNegativeButton("Cancel", null)
-                        .show()
-                }
-            }
             ITEM_FAVOURITES -> {
                 holder.title.text = "Favourite Songs"
                 holder.title.setTextColor(Color.WHITE)
@@ -103,118 +67,11 @@ class LibraryPlaylistAdapter(
                 holder.gridCoverFrame.visibility = View.GONE
                 
                 holder.itemView.setOnClickListener {
-                    // Navigate to favourites. We can reuse LibrarySongSubFragment?
-                    // Actually, LibrarySongSubFragment is hardcoded to show 'favourite' playlist!
                     fragment.findBaseWrapperFragment()?.replaceFragment(LibrarySongSubFragment())
                 }
             }
-            ITEM_AUTO -> {
-                holder.title.text = "Auto Playlist (Folders)"
-                holder.title.setTextColor(Color.parseColor("#FF0000"))
-                holder.iconImage.setImageResource(R.drawable.ic_folder)
-                holder.iconImage.imageTintList = ColorStateList.valueOf(Color.parseColor("#FF0000"))
-                holder.iconCard.setCardBackgroundColor(Color.parseColor("#1AFFFFFF"))
-                
-                holder.iconImage.visibility = View.VISIBLE
-                holder.coverImage.visibility = View.GONE
-                holder.gridCoverFrame.visibility = View.GONE
-                
-                holder.itemView.setOnClickListener {
-                    val ctx = fragment.requireContext()
-                    val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(ctx)
-                    val uriString = prefs.getString("auto_playlist_folder_uri", null)
-                    
-                    if (uriString == null) {
-                        android.widget.Toast.makeText(ctx, "Please select a music folder first.", android.widget.Toast.LENGTH_LONG).show()
-                        return@setOnClickListener
-                    }
-                    
-                    val uri = android.net.Uri.parse(uriString)
-                    val path = uri.path
-                    if (path == null) {
-                        android.widget.Toast.makeText(ctx, "Invalid folder URI", android.widget.Toast.LENGTH_LONG).show()
-                        return@setOnClickListener
-                    }
-                    
-                    val split = path.split(":")
-                    var absolutePath = ""
-                    if (split.size > 1 && split[0].contains("primary")) {
-                        absolutePath = android.os.Environment.getExternalStorageDirectory().absolutePath + "/" + split[1]
-                    } else if (split.size > 1) {
-                        val volumeId = split[0].substringAfterLast("/")
-                        absolutePath = "/storage/$volumeId/${split[1]}"
-                    } else {
-                        android.widget.Toast.makeText(ctx, "Unsupported storage URI", android.widget.Toast.LENGTH_LONG).show()
-                        return@setOnClickListener
-                    }
-                    
-                    android.widget.Toast.makeText(ctx, "Scanning selected folder...", android.widget.Toast.LENGTH_SHORT).show()
-                    
-                    fragment.lifecycleScope.launch(Dispatchers.IO) {
-                        try {
-                            val musicDir = java.io.File(absolutePath)
-                                    
-
-                            if (musicDir.exists() && musicDir.isDirectory) {
-                                val folders = musicDir.listFiles { file -> file.isDirectory && !file.isHidden && !file.name.startsWith(".") }
-                                val db = AppDatabase.getInstance(ctx.applicationContext)
-                                val allMediaItems = libraryViewModel.mediaItemList.value ?: emptyList()
-                                        
-                                        folders?.forEach { folder ->
-                                            val playlistName = folder.name
-                                            val songsInFolder = allMediaItems.filter { item ->
-                                                val path = item.localConfiguration?.uri?.path
-                                                path != null && path.startsWith(folder.absolutePath)
-                                            }
-                                            
-                                            if (songsInFolder.isNotEmpty()) {
-                                                val allPlaylists = db.playlistDao().getAllPlaylists()
-                                                var targetPlaylist = allPlaylists.find { it.playlist.name == playlistName }
-                                                
-                                                if (targetPlaylist == null) {
-                                                    val newPlaylist = Playlist(System.currentTimeMillis(), playlistName, null)
-                                                    db.playlistDao().addPlaylist(newPlaylist)
-                                                    targetPlaylist = db.playlistDao().getAllPlaylists().find { it.playlist.name == playlistName }
-                                                }
-                                                
-                                                if (targetPlaylist != null) {
-                                                    val existingMediaIds = targetPlaylist.mediaItems.map { it.mediaItemId }
-                                                    songsInFolder.forEach { song ->
-                                                        val mediaId = song.mediaId.toLongOrNull()
-                                                        if (mediaId != null && !existingMediaIds.contains(mediaId)) {
-                                                            com.phantom.accord.logic.utils.DatabaseUtils.addSongToPlaylist(mediaId, targetPlaylist.playlist.playlistId, libraryViewModel, ctx.applicationContext)
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                val backupDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOCUMENTS)
-                                val backupFile = java.io.File(backupDir, "Accord_Backup.json")
-                                val uri = android.net.Uri.fromFile(backupFile)
-                                        
-                                com.phantom.accord.logic.utils.PlaylistBackupUtils.exportPlaylistsToJson(
-                                    ctx, libraryViewModel, uri, fragment.requireView()
-                                )
-                                        
-                                DatabaseUtils.getPrivatePlaylist(libraryViewModel, ctx.applicationContext)
-                                kotlinx.coroutines.withContext(Dispatchers.Main) {
-                                    android.widget.Toast.makeText(ctx, "Auto playlists created and backed up to Documents/Accord_Backup.json", android.widget.Toast.LENGTH_LONG).show()
-                                }
-                            } else {
-                                kotlinx.coroutines.withContext(Dispatchers.Main) {
-                                    android.widget.Toast.makeText(ctx, "Selected folder not found", android.widget.Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        } catch (e: Exception) {
-                            kotlinx.coroutines.withContext(Dispatchers.Main) {
-                                android.widget.Toast.makeText(ctx, "Auto playlist failed: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
-                            }
-                        }
-                    }
-                }
-            }
             ITEM_PLAYLIST -> {
-                val playlistItem = playlists[position - 3]
+                val playlistItem = playlists[position - 1]
                 holder.title.text = playlistItem.playlist.name
                 holder.title.setTextColor(Color.WHITE)
                 

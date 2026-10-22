@@ -77,6 +77,13 @@
         android:summary="Import or export app data" />
 
     <Preference
+        android:icon="@drawable/ic_translate"
+        android:key="language"
+        android:layout="@layout/preference_basic"
+        android:title="Language"
+        android:summary="Change application language" />
+
+    <Preference
         android:icon="@drawable/ic_close"
         android:key="kill_switch"
         android:layout="@layout/preference_basic"

@@ -104,7 +104,19 @@ fun MediaItem.getUri(): Uri? {
 }
 
 fun MediaItem.getFile(): File? {
-    return getUri()?.toFile()
+    val uri = getUri() ?: return null
+    return if (uri.scheme == "file") {
+        try {
+            val path = uri.path ?: return null
+            val decoded = java.net.URLDecoder.decode(path, "UTF-8")
+            val f = File(decoded)
+            if (f.exists()) f else File(path)
+        } catch (_: Throwable) {
+            try { uri.toFile() } catch (_: Throwable) { null }
+        }
+    } else {
+        null
+    }
 }
 
 fun Activity.closeKeyboard(view: View) {
@@ -643,6 +655,10 @@ fun MaterialToolbar.applyGeneralMenuItem(
                         snackBar.anchorView = playerLayout
                     snackBar.show()
                 }
+            }
+
+            R.id.kill_switch -> {
+                android.os.Process.killProcess(android.os.Process.myPid())
             }
 
             R.id.settings -> {

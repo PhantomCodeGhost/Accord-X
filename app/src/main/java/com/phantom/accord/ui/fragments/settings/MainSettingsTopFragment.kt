@@ -28,8 +28,76 @@ import com.phantom.accord.ui.fragments.BaseSettingFragment
 class MainSettingsFragment : BaseSettingFragment(R.string.home_menu_settings, { MainSettingsTopFragment() })
 
 class MainSettingsTopFragment : BasePreferenceFragment() {
+    private val languages = listOf(
+        Pair("System Default", ""),
+        Pair("English", "en"),
+        Pair("العربية (Arabic)", "ar"),
+        Pair("Беларуская (Belarusian)", "be"),
+        Pair("বাংলা (Bengali)", "bn"),
+        Pair("Čeština (Czech)", "cs"),
+        Pair("Deutsch (German)", "de"),
+        Pair("Español (Spanish)", "es"),
+        Pair("فارسی (Persian)", "fa"),
+        Pair("Français (French)", "fr"),
+        Pair("Magyar (Hungarian)", "hu"),
+        Pair("Interlingua", "ia"),
+        Pair("Bahasa Indonesia (Indonesian)", "in"),
+        Pair("Italiano (Italian)", "it"),
+        Pair("日本語 (Japanese)", "ja"),
+        Pair("Norsk Bokmål (Norwegian)", "nb-NO"),
+        Pair("नेपाली (Nepali)", "ne"),
+        Pair("Polski (Polish)", "pl"),
+        Pair("Português (Portuguese)", "pt"),
+        Pair("Português do Brasil (Brazilian Portuguese)", "pt-BR"),
+        Pair("Română (Romanian)", "ro"),
+        Pair("Русский (Russian)", "ru"),
+        Pair("Türkçe (Turkish)", "tr"),
+        Pair("Українська (Ukrainian)", "uk"),
+        Pair("Tiếng Việt (Vietnamese)", "vi"),
+        Pair("简体中文 (Simplified Chinese)", "zh-CN"),
+        Pair("繁體中文 (Traditional Chinese)", "zh-TW")
+    )
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.settings_top, rootKey)
+        updateLanguageSummary()
+    }
+
+    private fun updateLanguageSummary() {
+        val currentLocales = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
+        val currentTag = if (!currentLocales.isEmpty) currentLocales[0]?.toLanguageTag() ?: "" else ""
+        val currentLang = languages.find { 
+            it.second.equals(currentTag, ignoreCase = true) || 
+            (currentTag.isNotEmpty() && it.second.startsWith(currentTag.take(2), ignoreCase = true)) 
+        }?.first ?: "System Default"
+        findPreference<Preference>("language")?.summary = currentLang
+    }
+
+    private fun showLanguageDialog() {
+        val currentLocales = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
+        val currentTag = if (!currentLocales.isEmpty) currentLocales[0]?.toLanguageTag() ?: "" else ""
+        var selectedIndex = languages.indexOfFirst { 
+            it.second.equals(currentTag, ignoreCase = true) || 
+            (currentTag.isNotEmpty() && it.second.startsWith(currentTag.take(2), ignoreCase = true)) 
+        }
+        if (selectedIndex == -1) selectedIndex = 0
+
+        val names = languages.map { it.first }.toTypedArray()
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Language")
+            .setSingleChoiceItems(names, selectedIndex) { dialog, which ->
+                val tag = languages[which].second
+                val appLocales = if (tag.isEmpty()) {
+                    androidx.core.os.LocaleListCompat.getEmptyLocaleList()
+                } else {
+                    androidx.core.os.LocaleListCompat.forLanguageTags(tag)
+                }
+                androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(appLocales)
+                updateLanguageSummary()
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     override fun onPreferenceTreeClick(preference: Preference): Boolean {
@@ -91,6 +159,9 @@ class MainSettingsTopFragment : BasePreferenceFragment() {
                     .hide(supportFragmentManager.fragments.let { it[it.size - 1] })
                     .add(R.id.container, BackupSettingsFragment())
                     .commit()
+            }
+            "language" -> {
+                showLanguageDialog()
             }
             "kill_switch" -> {
                 android.os.Process.killProcess(android.os.Process.myPid())

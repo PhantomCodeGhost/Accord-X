@@ -450,6 +450,8 @@ object MediaStoreUtils {
                 val duration = it.getLongOrNull(durationColumn)
                 val pathFile = File(path)
                 val fldPath = pathFile.parentFile!!.absolutePath
+                val isThumbnailPath = path.contains("/.thumbnail", ignoreCase = true) || path.contains("/.thumbnails", ignoreCase = true)
+                if (isThumbnailPath) continue
                 val skip =
                     (duration != null && duration < limitValue * 1000) || folderFilter.contains(
                         fldPath
@@ -627,27 +629,40 @@ object MediaStoreUtils {
             artistMap[it.artistId]?.albumList?.add(it)
             // coverCache == null if !haveImgPerm
             coverCache?.get(it.id)?.let { p ->
-                // if this is false, folder contains >1 albums
-                if (p.second.albumId == it.id) {
+                // Clean up any unwanted .thumbnail directory created by Android/media scanner
+                try {
+                    val t1 = File(p.first, ".thumbnail")
+                    if (t1.exists() && t1.isDirectory) t1.deleteRecursively()
+                    val t2 = File(p.first, ".thumbnails")
+                    if (t2.exists() && t2.isDirectory) t2.deleteRecursively()
+                } catch (_: Throwable) {}
+
+                // Only use folder image if folder is a dedicated album (single artist, not a mixed playlist folder)
+                val distinctArtists = p.second.songList.mapNotNull { s -> s.mediaMetadata.artist }.toSet()
+                if (p.second.albumId == it.id && distinctArtists.size <= 1) {
                     var bestScore = 0
                     var bestFile: File? = null
                     try {
                         val files = p.first.listFiles() ?: return@let
                         for (file in files) {
-                            if (file.extension !in allowedCoverExtensions)
+                            if (!file.isFile || file.isHidden || file.name.startsWith(".") || file.name.contains("thumbnail", ignoreCase = true))
                                 continue
-                            var score = 1
-                            when (file.extension) {
-                                "jpg" -> score += 3
-                                "png" -> score += 2
-                                "jpeg" -> score += 1
+                            if (file.extension.lowercase() !in allowedCoverExtensions)
+                                continue
+                            var score = 0
+                            if (file.nameWithoutExtension.equals("albumart", ignoreCase = true)) score += 24
+                            else if (file.nameWithoutExtension.equals("cover", ignoreCase = true)) score += 20
+                            else if (file.nameWithoutExtension.startsWith("albumart", ignoreCase = true)) score += 16
+                            else if (file.nameWithoutExtension.startsWith("cover", ignoreCase = true)) score += 12
+                            else if (file.nameWithoutExtension.contains("albumart", ignoreCase = true)) score += 8
+                            else if (file.nameWithoutExtension.contains("cover", ignoreCase = true)) score += 4
+                            if (score > 0) {
+                                when (file.extension.lowercase()) {
+                                    "jpg" -> score += 3
+                                    "png" -> score += 2
+                                    "jpeg" -> score += 1
+                                }
                             }
-                            if (file.nameWithoutExtension == "albumart") score += 24
-                            else if (file.nameWithoutExtension == "cover") score += 20
-                            else if (file.nameWithoutExtension.startsWith("albumart")) score += 16
-                            else if (file.nameWithoutExtension.startsWith("cover")) score += 12
-                            else if (file.nameWithoutExtension.contains("albumart")) score += 8
-                            else if (file.nameWithoutExtension.contains("cover")) score += 4
                             if (bestScore < score) {
                                 bestScore = score
                                 bestFile = file
@@ -656,9 +671,8 @@ object MediaStoreUtils {
                     } catch (e: Exception) {
                         Log.e(TAG, Log.getStackTraceString(e))
                     }
-                    // allow .jpg or .png files with any name, but only permit more exotic
-                    // formats if name contains either cover or albumart
-                    if (bestScore >= 3) {
+                    // Only permit files specifically named cover or albumart
+                    if (bestScore >= 12) {
                         bestFile?.let { f -> it.cover = f.toUri() }
                     }
                 }

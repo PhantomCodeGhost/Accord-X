@@ -251,6 +251,23 @@
             app:layout_constraintStart_toStartOf="@id/bottom_frame"
             app:layout_constraintTop_toBottomOf="@id/bottom_frame" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_clear_queue"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:text="Clear"
+            android:textColor="#EBFFFFFF"
+            android:textSize="13sp"
+            app:icon="@drawable/ic_delete"
+            app:iconTint="#EBFFFFFF"
+            app:iconSize="18dp"
+            app:layout_constraintBottom_toBottomOf="@id/playlist_title"
+            app:layout_constraintEnd_toEndOf="@id/bottom_frame"
+            app:layout_constraintTop_toTopOf="@id/playlist_title" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/playlist_recyclerview"
             android:layout_width="match_parent"

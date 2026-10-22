@@ -52,6 +52,7 @@ import coil3.asDrawable
 import coil3.imageLoader
 import coil3.request.Disposable
 import coil3.request.ImageRequest
+import coil3.request.allowHardware
 import coil3.request.error
 import coil3.size.Scale
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -66,6 +67,7 @@ import com.phantom.accord.logic.GramophonePlaybackService
 import com.phantom.accord.logic.clone
 import com.phantom.accord.logic.dpToPx
 import com.phantom.accord.logic.getBooleanStrict
+import com.phantom.accord.logic.getFile
 import com.phantom.accord.logic.playOrPause
 import com.phantom.accord.logic.ui.MyBottomSheetBehavior
 import com.phantom.accord.logic.utils.EnvUtils
@@ -490,25 +492,29 @@ class PlayerBottomSheet private constructor(
     ) {
         if ((instance?.mediaItemCount ?: 0) > 0) {
             lastDisposable?.dispose()
+            val file = mediaItem?.getFile() ?: mediaItem?.let { com.phantom.accord.logic.utils.PlaylistFileUtils.resolveMediaItemFile(context, it) }
+            val artworkData: Any? = if (file != null && file.exists()) Pair(file, null) else mediaItem?.mediaMetadata?.artworkUri
             lastDisposable = context.imageLoader.enqueue(ImageRequest.Builder(context).apply {
                 target(onSuccess = {
-                    bottomSheetPreviewCover.setImageDrawable(it.asDrawable(context.resources))
+                    val drawable = it.asDrawable(context.resources)
+                    bottomSheetPreviewCover.setImageDrawable(drawable)
+                    val bitmap = (it as? coil3.BitmapImage)?.bitmap
+                        ?: (drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
+                    bottomSheetBlendView.setBitmap(bitmap)
                 }, onError = {
                     bottomSheetPreviewCover.setImageDrawable(it?.asDrawable(context.resources))
+                    bottomSheetBlendView.setBitmap(null)
                 }) // do not react to onStart() which sets placeholder
-                data(mediaItem?.mediaMetadata?.artworkUri)
+                data(artworkData)
                 scale(Scale.FILL)
+                allowHardware(false)
                 error(R.drawable.ic_default_cover)
             }.build())
-            mediaItem?.mediaMetadata?.artworkUri?.let {
-                bottomSheetBlendView.setImageUri(
-                    it
-                )
-            }
             bottomSheetPreviewTitle.text = mediaItem?.mediaMetadata?.title
         } else {
             lastDisposable?.dispose()
             lastDisposable = null
+            bottomSheetBlendView.setBitmap(null)
         }
         var newState = standardBottomSheetBehavior!!.state
         if ((instance?.mediaItemCount ?: 0) > 0 && visible) {
